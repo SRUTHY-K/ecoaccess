@@ -22,18 +22,34 @@ def predict_carbon_emissions_bq(renewables: int, transit: int, recycling: int, a
     return round(base, 1)
 
 def forecast_energy_demand_bq() -> list[dict]:
-    """Queries BigQuery ML.FORECAST to predict upcoming energy grid loads."""
+    """Queries BigQuery ML.FORECAST to predict upcoming energy grid loads.
+    ARIMA_PLUS returns one row per (venue_id x horizon step). We aggregate
+    by hour bucket, summing load across all venues, for a single total
+    grid demand per hour to display in the frontend chart.
+    """
     try:
         bq_client = bigquery.Client(project=PROJECT_ID)
         query = f"""
-        SELECT forecast_timestamp, forecast_value FROM ML.FORECAST(
+        SELECT
+            EXTRACT(HOUR FROM forecast_timestamp) AS hour_of_day,
+            SUM(forecast_value) AS total_grid_kw
+        FROM ML.FORECAST(
             MODEL `{PROJECT_ID}.ecoaccess_data.energy_demand_forecast`,
             STRUCT(4 AS horizon)
-        ) ORDER BY forecast_timestamp
+        )
+        GROUP BY hour_of_day
+        ORDER BY hour_of_day
+        LIMIT 4
         """
         query_job = bq_client.query(query)
         results = list(query_job.result())
-        return [{"time": str(r["forecast_timestamp"]), "value": round(r["forecast_value"], 1)} for r in results]
+        return [
+            {
+                "time": f"{int(r['hour_of_day']):02d}:00",
+                "value": round(r["total_grid_kw"], 1)
+            }
+            for r in results
+        ]
     except Exception as e:
         print(f"BigQuery ML forecast error: {e}")
     # Return mock time series if offline
