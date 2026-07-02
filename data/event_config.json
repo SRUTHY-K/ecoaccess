@@ -1,0 +1,15 @@
+{
+  "eventTitle": "Integration Test Title",
+  "eventSubtitle": "Integration Test Subtitle",
+  "baseBudget": 50.0,
+  "mapNodes": [
+    {
+      "id": "node-t1",
+      "name": "Test Node",
+      "x": 10,
+      "y": 20,
+      "type": "stadium",
+      "alert": "none"
+    }
+  ]
+}
