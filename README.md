@@ -205,14 +205,58 @@ Credentials are resolved in this order:
 
 ## Deployment (Cloud Run)
 
+The app is packaged as a single container using a multi-stage Dockerfile:
+- **Stage 1** — builds the React frontend (`npm run build` → `/dist`)
+- **Stage 2** — serves the built frontend as FastAPI static files on port 8080
+
+### Deploy to Cloud Run
+
 ```bash
-# Build and deploy to Cloud Run
 gcloud run deploy ecoaccess \
   --source . \
   --region us-central1 \
   --allow-unauthenticated \
   --set-env-vars GOOGLE_CLOUD_PROJECT=your-project-id,GOOGLE_GENAI_USE_VERTEXAI=True
 ```
+
+This produces a public URL in the format:
+```
+https://ecoaccess-<hash>-uc.a.run.app
+```
+
+### Custom Domain — ecoaccess.ai *(planned)*
+
+The production deployment will be served at **ecoaccess.ai** once the domain is registered and mapped.
+
+To connect a custom domain to Cloud Run:
+
+```bash
+# 1. Verify domain ownership in Google Search Console
+# 2. Map the domain to the Cloud Run service
+gcloud beta run domain-mappings create \
+  --service ecoaccess \
+  --domain ecoaccess.ai \
+  --region us-central1
+```
+
+Then add the CNAME/A records provided by Google to your DNS registrar. TLS is automatically provisioned by Cloud Run.
+
+### Environment Variables on Cloud Run
+
+Set these in the Cloud Run console or via `--set-env-vars`:
+
+| Variable | Value |
+|---|---|
+| `GOOGLE_CLOUD_PROJECT` | Your GCP project ID |
+| `GOOGLE_CLOUD_LOCATION` | `us-central1` |
+| `GOOGLE_GENAI_USE_VERTEXAI` | `True` |
+| `DB_HOST` | AlloyDB private IP *(optional — enables pgvector RAG)* |
+| `DB_USER` | AlloyDB username *(optional)* |
+| `DB_PASSWORD` | AlloyDB password *(optional)* |
+| `DB_NAME` | Database name, default `postgres` *(optional)* |
+
+> [!NOTE]
+> On Cloud Run, Application Default Credentials are provided automatically via the attached service account — no `gcloud auth` command needed. Ensure the service account has the **BigQuery Data Editor**, **Vertex AI User**, and optionally **Cloud AlloyDB Client** IAM roles.
 
 ---
 
