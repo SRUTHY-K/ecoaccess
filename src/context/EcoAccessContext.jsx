@@ -168,7 +168,15 @@ export const EcoAccessProvider = ({ children }) => {
           setEnergyForecast(data.forecast);
         }
       })
-      .catch(err => console.log("Using local mock energy forecast."));
+      .catch(err => {
+        // Backend offline: use realistic mock ARIMA forecast
+        setEnergyForecast([
+          {"time": "18:00", "value": 680.0},
+          {"time": "19:00", "value": 880.0},
+          {"time": "20:00", "value": 750.0},
+          {"time": "21:00", "value": 520.0}
+        ]);
+      });
   };
 
   useEffect(() => {
@@ -370,6 +378,14 @@ export const EcoAccessProvider = ({ children }) => {
         setDemoStep(6);
       })
       .catch(err => {
+        // Backend offline: show mock RAG retrieval result
+        setChatMessages(prev => [...prev, {
+          sender: 'ai',
+          text: `RAG RETRIEVAL (AlloyDB pgvector — offline fallback):\n\nAccessibility Rule 4.2.1: In the event of elevator failure, repair crews must be dispatched within 10 minutes. Accessible ramp routes must be communicated to affected visitors via audio announcement and digital signage.\n\nSustainability Code 6.1.2: During peak crowd periods causing carbon overrun, operator must increase low-floor electric shuttle frequency by a minimum of 10% to offset transit emissions and reduce private vehicle demand.`,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          citations: ["AlloyDB pgvector Index (offline fallback)"],
+          ragSnippet: "Accessibility Rule 4.2.1 & Sustainability Code 6.1.2"
+        }]);
         setIsTyping(false);
         setDemoStep(6);
       });

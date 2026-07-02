@@ -109,6 +109,10 @@ export default function InteractiveMap() {
             <span className="legend-color-dot" style={{backgroundColor: 'var(--color-accent-orange)'}}></span>
             <span>Carbon / Energy Anomaly</span>
           </div>
+          <div className="legend-item">
+            <span className="legend-color-dot" style={{backgroundColor: 'var(--color-accent-indigo)'}}></span>
+            <span>Accessible Transport Hub</span>
+          </div>
         </div>
       </div>
     </div>
