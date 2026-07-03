@@ -90,7 +90,7 @@ def chat_copilot(query: str, system_context: str) -> dict:
             level="ERROR",
             component="AI_Service",
             action="chat_copilot_failed",
-            details=f"Copilot query failed: '{query}'",
+            details=f"Copilot query failed (len={len(query)}): '{query[:80]}'",
             error=str(e)
         )
         query_lower = query.lower()
