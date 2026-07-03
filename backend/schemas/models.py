@@ -12,3 +12,9 @@ class EventConfig(BaseModel):
     eventSubtitle: str
     baseBudget: float
     mapNodes: list
+
+class CredentialsConfig(BaseModel):
+    apiMode: str
+    apiKey: str = ""
+    gcpProjectId: str = ""
+    gcpLocation: str = ""

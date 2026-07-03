@@ -14,18 +14,19 @@ export default function StatsGrid() {
 
   // Helper to generate dynamic sparkline SVG path based on value trends
   const getSparklinePath = (type, value) => {
+    // Sized down slightly (Y limits between 6 and 24) to leave 6px padding for drop-shadow glow filters
     if (type === 'carbon') {
-      // Slopes down as efficiency increases
-      return "M 0 25 Q 25 15 50 20 T 100 12 T 150 18 T 200 8";
+      return "M 0 20 Q 25 15 50 18 T 100 12 T 150 16 T 200 8";
     } else if (type === 'energy') {
-      // Rises with renewable share
-      return `M 0 28 Q 25 24 50 18 T 100 15 T 150 10 T 200 ${Math.max(4, 30 - value * 0.25)}`;
+      const endY = Math.min(24, Math.max(6, 28 - value * 0.22));
+      return `M 0 22 Q 25 18 50 14 T 100 12 T 150 10 T 200 ${endY}`;
     } else if (type === 'accessibility') {
-      // Fluctuates slightly, ends high
-      return `M 0 20 Q 25 22 50 16 T 100 12 T 150 ${Math.max(4, 40 - value * 0.35)} T 200 6`;
+      const endY = Math.min(24, Math.max(6, 32 - value * 0.3));
+      return `M 0 18 Q 25 20 50 14 T 100 12 T 150 ${endY} T 200 8`;
     } else {
-      // Fan satisfaction curve
-      return "M 0 15 Q 25 18 50 10 T 100 14 T 150 8 T 200 4";
+      // Fan satisfaction curve (reacts dynamically to user rating)
+      const endY = Math.min(24, Math.max(6, 30 - value * 0.28));
+      return `M 0 12 Q 25 16 50 10 T 100 14 T 150 12 T 200 ${endY}`;
     }
   };
 
@@ -44,7 +45,7 @@ export default function StatsGrid() {
         </div>
         
         {/* Sparkline Visual */}
-        <svg className="stat-sparkline" style={{ '--sparkline-color': 'var(--color-accent-red)', '--sparkline-glow': 'var(--color-accent-red-glow)' }}>
+        <svg className="stat-sparkline" viewBox="0 0 200 30" preserveAspectRatio="none" style={{ '--sparkline-color': 'var(--color-accent-red)', '--sparkline-glow': 'var(--color-accent-red-glow)' }}>
           <path className="stat-sparkline-path" d={getSparklinePath('carbon')} />
         </svg>
       </div>
@@ -62,7 +63,7 @@ export default function StatsGrid() {
         </div>
 
         {/* Sparkline Visual */}
-        <svg className="stat-sparkline" style={{ '--sparkline-color': 'var(--color-accent-emerald)', '--sparkline-glow': 'var(--color-accent-emerald-glow)' }}>
+        <svg className="stat-sparkline" viewBox="0 0 200 30" preserveAspectRatio="none" style={{ '--sparkline-color': 'var(--color-accent-emerald)', '--sparkline-glow': 'var(--color-accent-emerald-glow)' }}>
           <path className="stat-sparkline-path" d={getSparklinePath('energy', metrics.greenEnergyMix)} />
         </svg>
       </div>
@@ -83,7 +84,7 @@ export default function StatsGrid() {
         </div>
 
         {/* Sparkline Visual */}
-        <svg className="stat-sparkline" style={{ '--sparkline-color': 'var(--color-accent-cyan)', '--sparkline-glow': 'var(--color-accent-cyan-glow)' }}>
+        <svg className="stat-sparkline" viewBox="0 0 200 30" preserveAspectRatio="none" style={{ '--sparkline-color': 'var(--color-accent-cyan)', '--sparkline-glow': 'var(--color-accent-cyan-glow)' }}>
           <path className="stat-sparkline-path" d={getSparklinePath('accessibility', metrics.inclusivityIndex)} />
         </svg>
       </div>
@@ -101,8 +102,8 @@ export default function StatsGrid() {
         </div>
 
         {/* Sparkline Visual */}
-        <svg className="stat-sparkline" style={{ '--sparkline-color': 'var(--color-accent-pink)', '--sparkline-glow': 'var(--color-accent-pink-glow)' }}>
-          <path className="stat-sparkline-path" d={getSparklinePath('fansat')} />
+        <svg className="stat-sparkline" viewBox="0 0 200 30" preserveAspectRatio="none" style={{ '--sparkline-color': 'var(--color-accent-pink)', '--sparkline-glow': 'var(--color-accent-pink-glow)' }}>
+          <path className="stat-sparkline-path" d={getSparklinePath('fansat', metrics.fanSat)} />
         </svg>
       </div>
     </div>

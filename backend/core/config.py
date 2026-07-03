@@ -39,11 +39,76 @@ load_dotenv()
 PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT", "river-sonar-497916-s5")
 LOCATION = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
 CONFIG_FILE = "data/event_config.json"
+CREDENTIALS_FILE = "data/credentials_config.json"
 
 # Ensure environment variables are set for GCP libraries
 os.environ["GOOGLE_CLOUD_PROJECT"] = PROJECT_ID
 os.environ["GOOGLE_CLOUD_LOCATION"] = LOCATION
 os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = os.environ.get("GOOGLE_GENAI_USE_VERTEXAI", "True")
 
-# Initialize and expose the shared GenAI Client
-client = genai.Client()
+import json
+
+def get_credentials():
+    if os.path.exists(CREDENTIALS_FILE):
+        try:
+            with open(CREDENTIALS_FILE, "r") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    
+    # Default fallbacks
+    mode = "mock"
+    use_vertex = os.environ.get("GOOGLE_GENAI_USE_VERTEXAI", "True")
+    project = os.environ.get("GOOGLE_CLOUD_PROJECT", "river-sonar-497916-s5")
+    location = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
+    api_key = os.environ.get("GEMINI_API_KEY", "")
+    
+    # Try to deduce mode
+    if api_key:
+        mode = "ai_studio"
+    elif use_vertex == "True" and project != "your-gcp-project-id":
+        mode = "vertex_ai"
+        
+    return {
+        "apiMode": mode,
+        "apiKey": api_key,
+        "gcpProjectId": project,
+        "gcpLocation": location
+    }
+
+def get_genai_client():
+    creds = get_credentials()
+    mode = creds.get("apiMode", "mock")
+    
+    if mode == "mock":
+        return None
+        
+    if mode == "ai_studio":
+        api_key = creds.get("apiKey", "")
+        # Force AI Studio mode by overriding env variables temporarily
+        os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "False"
+        if api_key:
+            return genai.Client(api_key=api_key)
+        return genai.Client()
+        
+    if mode == "vertex_ai":
+        os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
+        project = creds.get("gcpProjectId", "")
+        location = creds.get("gcpLocation", "")
+        if project:
+            os.environ["GOOGLE_CLOUD_PROJECT"] = project
+        if location:
+            os.environ["GOOGLE_CLOUD_LOCATION"] = location
+        return genai.Client()
+    return None
+
+class DynamicClientProxy:
+    def __getattr__(self, name):
+        real_client = get_genai_client()
+        if not real_client:
+            raise ValueError("Running in local mock simulation mode (No credentials configured)")
+        return getattr(real_client, name)
+
+# Initialize and expose the shared GenAI Client proxy
+client = DynamicClientProxy()
+

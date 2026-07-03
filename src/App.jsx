@@ -3,7 +3,6 @@ import { EcoAccessProvider, useEcoAccess } from './context/EcoAccessContext';
 import Sidebar from './components/Sidebar';
 import StatsGrid from './components/StatsGrid';
 import InteractiveMap from './components/InteractiveMap';
-import DemoController from './components/DemoController';
 import LiveCCTV from './components/LiveCCTV';
 import BigQueryML from './components/BigQueryML';
 import SustainabilityChat from './components/SustainabilityChat';
@@ -40,9 +39,8 @@ function DashboardContent() {
         {/* TAB 1: COMMAND CENTER (DASHBOARD) */}
         {activeTab === 'dashboard' && (
           <div className="animate-slide-up">
-            <div className="section-grid-2x1" style={{ marginBottom: '2rem' }}>
+            <div className="section-grid-full" style={{ marginBottom: '2rem' }}>
               <InteractiveMap />
-              <DemoController />
             </div>
 
             <div className="section-grid-2x1" style={{ marginBottom: '2rem' }}>

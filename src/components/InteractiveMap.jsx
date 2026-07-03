@@ -120,13 +120,10 @@ export default function InteractiveMap() {
             >
               {glowClass && <div className={glowClass} style={{ position: 'absolute', top: -4, left: -4, right: -4, bottom: -4, borderRadius: '50%' }}></div>}
               
-              {/* Desktop Hover Label */}
-              <div className="map-node-label">{node.name}{labelDetail}</div>
-              
-              {/* Always-on/Mobile Friendly Label Badges */}
+              {/* Always-on Label Badge */}
               {showLabels && (
-                <div className="map-node-label-badge" style={{ opacity: 0.9 }}>
-                  {node.name.replace("Venue ", "")}
+                <div className="map-node-label">
+                  {node.name}{labelDetail}
                 </div>
               )}
             </div>
@@ -145,6 +142,10 @@ export default function InteractiveMap() {
           <div className="legend-item">
             <span className="legend-color-dot" style={{backgroundColor: 'var(--color-accent-orange)'}}></span>
             <span>Energy Anomaly</span>
+          </div>
+          <div className="legend-item">
+            <span className="legend-color-dot" style={{backgroundColor: 'var(--color-accent-indigo)'}}></span>
+            <span>Accessible Transport Hub</span>
           </div>
         </div>
 

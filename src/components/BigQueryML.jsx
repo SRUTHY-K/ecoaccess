@@ -16,14 +16,14 @@ export default function BigQueryML() {
     : 1000;
 
   const points = (energyForecast || []).map((f, i) => {
-    const x = 20 + i * ((chartWidth - 40) / (energyForecast.length - 1));
-    const y = chartHeight - 15 - (f.value / maxVal) * (chartHeight - 30);
+    const x = 25 + i * ((chartWidth - 50) / (energyForecast.length - 1));
+    const y = chartHeight - 25 - (f.value / maxVal) * (chartHeight - 50);
     return { x, y, value: f.value, time: f.time };
   });
 
   const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
   const areaPath = points.length > 0 
-    ? `${linePath} L ${points[points.length - 1].x} ${chartHeight - 15} L ${points[0].x} ${chartHeight - 15} Z` 
+    ? `${linePath} L ${points[points.length - 1].x} ${chartHeight - 25} L ${points[0].x} ${chartHeight - 25} Z` 
     : '';
 
   return (
@@ -58,33 +58,7 @@ export default function BigQueryML() {
             </span>
           </div>
 
-          <div style={{ position: 'relative', height: `${chartHeight}px`, width: '100%' }}>
-            {/* Tooltip Overlay */}
-            {hoveredPoint && (
-              <div 
-                style={{
-                  position: 'absolute',
-                  left: `${hoveredPoint.x - 45}px`,
-                  top: `${hoveredPoint.y - 35}px`,
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--color-accent-orange)',
-                  borderRadius: '4px',
-                  padding: '2px 6px',
-                  fontSize: '0.65rem',
-                  pointerEvents: 'none',
-                  zIndex: 5,
-                  textAlign: 'center',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
-                  color: '#fff'
-                }}
-              >
-                <strong>{Math.round(hoveredPoint.value)} kW</strong>
-                <span style={{ display: 'block', fontSize: '0.55rem', color: 'var(--color-text-secondary)' }}>
-                  at {hoveredPoint.time.includes(' ') ? hoveredPoint.time.split(' ')[1].substring(0, 5) : hoveredPoint.time}
-                </span>
-              </div>
-            )}
-
+          <div style={{ position: 'relative', width: '100%' }}>
             <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="arima-chart-svg">
               <defs>
                 <linearGradient id="arimaAreaGradient" x1="0" y1="0" x2="0" y2="1">
@@ -94,9 +68,9 @@ export default function BigQueryML() {
               </defs>
 
               {/* Gridlines */}
-              <line x1="20" y1="15" x2={chartWidth - 20} y2="15" className="arima-chart-grid" />
+              <line x1="20" y1="25" x2={chartWidth - 20} y2="25" className="arima-chart-grid" />
               <line x1="20" y1={chartHeight / 2} x2={chartWidth - 20} y2={chartHeight / 2} className="arima-chart-grid" />
-              <line x1="20" y1={chartHeight - 15} x2={chartWidth - 20} y2={chartHeight - 15} className="arima-chart-grid" />
+              <line x1="20" y1={chartHeight - 25} x2={chartWidth - 20} y2={chartHeight - 25} className="arima-chart-grid" />
 
               {/* Area path */}
               {areaPath && <path d={areaPath} className="arima-chart-area" />}
@@ -129,6 +103,41 @@ export default function BigQueryML() {
                   {p.time.includes(' ') ? p.time.split(' ')[1].substring(0, 5) : p.time}
                 </text>
               ))}
+
+              {/* Responsive SVG Tooltip (Never slips out of sight) */}
+              {hoveredPoint && (
+                <g style={{ pointerEvents: 'none' }}>
+                  <rect 
+                    x={hoveredPoint.x - 40} 
+                    y={hoveredPoint.y - 28} 
+                    width="80" 
+                    height="22" 
+                    rx="3" 
+                    fill="rgba(9, 13, 22, 0.95)" 
+                    stroke="var(--color-accent-orange)" 
+                    strokeWidth="1" 
+                  />
+                  <text 
+                    x={hoveredPoint.x} 
+                    y={hoveredPoint.y - 18} 
+                    fill="#fff" 
+                    fontSize="7" 
+                    fontWeight="bold"
+                    textAnchor="middle"
+                  >
+                    {Math.round(hoveredPoint.value)} kW
+                  </text>
+                  <text 
+                    x={hoveredPoint.x} 
+                    y={hoveredPoint.y - 10} 
+                    fill="var(--color-text-secondary)" 
+                    fontSize="5" 
+                    textAnchor="middle"
+                  >
+                    at {hoveredPoint.time.includes(' ') ? hoveredPoint.time.split(' ')[1].substring(0, 5) : hoveredPoint.time}
+                  </text>
+                </g>
+              )}
             </svg>
           </div>
 
