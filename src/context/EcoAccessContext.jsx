@@ -644,7 +644,8 @@ export const EcoAccessProvider = ({ children }) => {
 
     setChatMessages(prev => [...prev, userMsg]);
     const queryInput = chatInput;
-    logClientAction('submit_chat', `Submitted operator query to Gemini Copilot: "${queryInput}"`);
+    const queryPreview = queryInput.length > 80 ? `${queryInput.slice(0, 80)}…` : queryInput;
+    logClientAction('submit_chat', `Submitted operator query to Gemini Copilot (len=${queryInput.length}): "${queryPreview}"`);
     setChatInput('');
     setIsTyping(true);
 
