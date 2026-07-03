@@ -40,7 +40,7 @@ def translate_and_analyze_feedback(feedback_text: str) -> dict:
             level="WARNING",
             component="AI_Service",
             action="translate_feedback_fallback",
-            details=f"Feedback translation failed, using fallback mock. Input: '{feedback_text}'",
+            details=f"Feedback translation failed, using fallback mock. Input preview: '{feedback_text[:80]}' (len={len(feedback_text)})",
             error=str(e)
         )
         return {
