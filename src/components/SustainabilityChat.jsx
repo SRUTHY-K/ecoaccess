@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useEcoAccess } from '../context/EcoAccessContext';
-import { Cpu, Send, MessageSquare, Check } from 'lucide-react';
+import { Cpu, Send, MessageSquare, Info, Shield, HelpCircle } from 'lucide-react';
 
 export default function SustainabilityChat() {
   const {
@@ -10,17 +10,20 @@ export default function SustainabilityChat() {
     isTyping,
     handleChatSubmit,
     spectatorFeedbacks,
-    translateFeedback,
-    eventTitle,
-    baseBudget,
-    renewablesShare,
-    transitInclusivity,
-    audioAssistCoverage,
-    metrics
+    translateFeedback
   } = useEcoAccess();
+
+  const [expandedRAG, setExpandedRAG] = useState({});
 
   const handleSuggestionClick = (text) => {
     setChatInput(text);
+  };
+
+  const toggleRAGExpand = (idx) => {
+    setExpandedRAG(prev => ({
+      ...prev,
+      [idx]: !prev[idx]
+    }));
   };
 
   return (
@@ -28,7 +31,7 @@ export default function SustainabilityChat() {
       <div className="section-grid-2x1">
         
         {/* LEFT: CHATBOT */}
-        <div className="glass-panel chatbot-container">
+        <div className="glass-panel chatbot-container" style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="panel-header">
             <h2 className="panel-title">
               <Cpu size={18} style={{color: 'var(--color-accent-indigo)'}} />
@@ -36,62 +39,78 @@ export default function SustainabilityChat() {
             </h2>
           </div>
 
-          <div className="chat-messages" style={{ height: '340px', overflowY: 'auto' }}>
+          <div className="chat-messages" style={{ height: '340px', overflowY: 'auto', paddingRight: '4px' }}>
             {chatMessages.map((msg, index) => (
-              <div key={index} className={`chat-bubble ${msg.sender}`}>
+              <div key={index} className={`chat-bubble ${msg.sender} animate-slide-up`} style={{ marginBottom: '0.5rem' }}>
                 <span>{msg.text}</span>
                 
                 {msg.ragSnippet && (
-                  <div style={{ background: 'rgba(99, 102, 241, 0.08)', border: '1px dashed rgba(99, 102, 241, 0.25)', padding: '0.5rem', borderRadius: '4px', marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
-                    <span style={{ fontWeight: '700', color: 'var(--color-accent-indigo)', display: 'block', marginBottom: '0.25rem' }}>📖 AlloyDB pgvector RAG Match:</span>
-                    "{msg.ragSnippet}"
+                  <div style={{ background: 'rgba(99, 102, 241, 0.05)', border: '1px solid rgba(99, 102, 241, 0.15)', padding: '0.5rem', borderRadius: '6px', marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
+                    <div 
+                      onClick={() => toggleRAGExpand(index)} 
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', fontWeight: '700', color: 'var(--color-accent-indigo)' }}
+                    >
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Info size={12} /> AlloyDB pgvector RAG Reference
+                      </span>
+                      <button style={{ background: 'transparent', border: 'none', color: 'var(--color-accent-indigo)', fontSize: '0.65rem', cursor: 'pointer' }}>
+                        {expandedRAG[index] ? '[Collapse]' : '[Expand Details]'}
+                      </button>
+                    </div>
+                    {expandedRAG[index] && (
+                      <p style={{ marginTop: '0.35rem', fontStyle: 'italic', margin: '0.35rem 0 0 0', lineHeight: 1.4, color: 'var(--color-text-primary)' }}>
+                        "{msg.ragSnippet}"
+                      </p>
+                    )}
                   </div>
                 )}
 
                 {msg.citations && msg.citations.length > 0 && (
-                  <div className="citation-list">
+                  <div className="citation-list" style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '0.35rem' }}>
                     {msg.citations.map((cit, cIdx) => (
-                      <span key={cIdx} className="citation-badge">{cit}</span>
+                      <span key={cIdx} className="citation-badge" style={{ display: 'flex', alignItems: 'center', gap: '3px', padding: '2px 6px', borderRadius: '4px', fontSize: '0.6rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--color-text-secondary)' }}>
+                        <Shield size={8} style={{ color: 'var(--color-accent-indigo)' }} /> {cit}
+                      </span>
                     ))}
                   </div>
                 )}
-                <span className="chat-bubble-meta">{msg.time}</span>
+                <span className="chat-bubble-meta" style={{ display: 'block', fontSize: '0.65rem', marginTop: '0.25rem', textAlign: msg.sender === 'user' ? 'right' : 'left' }}>{msg.time}</span>
               </div>
             ))}
             {isTyping && (
-              <div className="chat-bubble ai" style={{alignSelf: 'flex-start'}}>
+              <div className="chat-bubble ai animate-slide-up" style={{alignSelf: 'flex-start'}}>
                 <span style={{fontStyle: 'italic', color: 'var(--color-text-secondary)'}}>Gemini is modeling parameters...</span>
               </div>
             )}
           </div>
 
-          <div style={{padding: '0.5rem 0.75rem 0 0.75rem'}}>
-            <div className="suggested-queries" style={{display: 'flex', gap: '0.5rem', overflowX: 'auto'}}>
+          <div style={{padding: '0.5rem 0.5rem 0 0.5rem'}}>
+            <div className="suggested-queries" style={{display: 'flex', gap: '0.4rem', overflowX: 'auto', paddingBottom: '0.25rem'}}>
               <button 
                 className="btn-suggestion"
-                style={{whiteSpace: 'nowrap'}}
+                style={{whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '3px'}}
                 onClick={() => handleSuggestionClick("Explain how AlloyDB translates Spanish and Japanese spectator feedback.")}
               >
-                How Translation works
+                <HelpCircle size={10} /> How Translation works
               </button>
               <button 
                 className="btn-suggestion"
-                style={{whiteSpace: 'nowrap'}}
+                style={{whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '3px'}}
                 onClick={() => handleSuggestionClick("Detail options to fix the broken elevator at Gate 6.")}
               >
-                Gate 6 Elevator Fix
+                <HelpCircle size={10} /> Gate 6 Elevator Fix
               </button>
               <button 
                 className="btn-suggestion"
-                style={{whiteSpace: 'nowrap'}}
+                style={{whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '3px'}}
                 onClick={() => handleSuggestionClick("What support is provided for visually impaired spectators?")}
               >
-                Visually Impaired Support
+                <HelpCircle size={10} /> Visually Impaired Support
               </button>
             </div>
           </div>
 
-          <form className="chat-input-area" onSubmit={handleChatSubmit}>
+          <form className="chat-input-area" onSubmit={handleChatSubmit} style={{ marginTop: 'auto' }}>
             <input 
               type="text" 
               className="chat-input"
@@ -118,7 +137,7 @@ export default function SustainabilityChat() {
             Foreign language fan submissions are matched via **AlloyDB pgvector** and automatically translated to identify accessibility barriers:
           </span>
 
-          <div className="citizen-reports-list" style={{maxHeight: '380px', overflowY: 'auto'}}>
+          <div className="citizen-reports-list" style={{maxHeight: '380px', overflowY: 'auto', paddingRight: '4px'}}>
             {spectatorFeedbacks.map(rep => (
               <div key={rep.id} className="citizen-report-card" style={{background: 'rgba(255, 255, 255, 0.01)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.75rem', marginBottom: '0.75rem'}}>
                 <div className="report-top" style={{display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem'}}>

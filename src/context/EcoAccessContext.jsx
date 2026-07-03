@@ -128,7 +128,14 @@ export const EcoAccessProvider = ({ children }) => {
   const [demoStep, setDemoStep] = useState(1);
   const [geminiBrief, setGeminiBrief] = useState("");
 
-  // Load configuration on startup
+  const [apiMode, setApiMode] = useState('mock');
+  const [apiKey, setApiKey] = useState('');
+  const [gcpProjectId, setGcpProjectId] = useState('');
+  const [gcpLocation, setGcpLocation] = useState('us-central1');
+  const [credsStatus, setCredsStatus] = useState(null);
+  const [isVerifyingCreds, setIsVerifyingCreds] = useState(false);
+
+  // Load configuration & credentials on startup
   useEffect(() => {
     fetch('http://localhost:8000/api/config')
       .then(res => res.json())
@@ -141,6 +148,18 @@ export const EcoAccessProvider = ({ children }) => {
         }
       })
       .catch(err => console.log("Using local mock configurations (Backend offline)."));
+
+    fetch('http://localhost:8000/api/credentials')
+      .then(res => res.json())
+      .then(data => {
+        if (data.apiMode) {
+          setApiMode(data.apiMode);
+          setApiKey(data.apiKey || '');
+          setGcpProjectId(data.gcpProjectId || '');
+          setGcpLocation(data.gcpLocation || 'us-central1');
+        }
+      })
+      .catch(err => console.log("Using local mock credentials (Backend offline)."));
   }, []);
 
   // Update carbon footprint from BigQuery ML when parameters change
@@ -591,13 +610,58 @@ export const EcoAccessProvider = ({ children }) => {
           let ragSnippet = "";
           const query = queryInput.toLowerCase();
 
-          if (query.includes('elevator') || query.includes('gate 6') || query.includes('access') || query.includes('wheelchair')) {
-            replyText = `Elevator E-4 is offline. Safety relay replaced. Reroute accessible shuttles.`;
-            citations = ["AlloyDB: elevator_status_register"];
-            ragSnippet = "ACCESSIBILITY RULE 4.2.1: In the event of primary elevator failure at gates serving mobility zones, operators must reroute passengers to auxiliary ramp structures within 10 minutes and dispatch repairs immediately.";
+          // Free Mock Knowledge Base
+          const mockDB = [
+            {
+              keywords: ['elevator', 'gate 6', 'access', 'wheelchair', 'mobility', 'barrier'],
+              reply: "Accessibility Alert: Elevator E-4 near Gate 6 is currently offline. Accessibility paths have been rerouted to auxiliary ramps. A repair crew is dispatched and on-route.",
+              citation: "AlloyDB: elevator_status_register (offline)",
+              snippet: "ACCESSIBILITY RULE 4.2.1: In the event of primary elevator failure at gates serving mobility zones, operators must reroute passengers to auxiliary ramp structures within 10 minutes and dispatch repairs immediately."
+            },
+            {
+              keywords: ['solar', 'peak shaving', 'energy', 'grid', 'substation', 'power', 'load'],
+              reply: "Grid Load Alert: Venue C Substation is drawing heavy load (880 kW Peak). Recommendation is to toggle Solar Battery Peak Shaving to buffer 150 kW and reduce draw on non-renewable grid supplies.",
+              citation: "BigQuery: venue_concession_power_ARIMA (offline)",
+              snippet: "SUBSTATION ENERGY POLICY: During demand spikes exceeding 800 kW, operators must buffer concession grid loads using solar peak-shaving storage to avoid fossil backup activation."
+            },
+            {
+              keywords: ['shuttle', 'transit', 'bus', 'transport', 'egress', 'crowd'],
+              reply: "Transit Report: Crowd density is high at Gate 2. To offset Scope 3 emissions and clear paths, low-floor electric shuttle frequency is recommended to increase by 10%.",
+              citation: "AlloyDB RAG: transit_inclusivity_code (offline)",
+              snippet: "SUSTAINABILITY CODE 6.1.2: During spectator egress overruns, transit dispatchers must increase shuttle capacity by 10% to offset private vehicle carbon footprint."
+            },
+            {
+              keywords: ['waste', 'contamination', 'dumpster', 'plastics', 'recycle', 'recycling', 'compost', 'bin'],
+              reply: "Vision AI Audit: Compost Bin #4 at Plaza Food Court contains non-compostable plastics (89% probability). Sorter crew dispatch has been suggested.",
+              citation: "Gemini Vision: plaza_cctv_12_audit (offline)",
+              snippet: "WASTE DIVERSION MANUAL: Recycle streams exceeding 5% plastic contamination must be manually sorted or rerouted to prevent entire dumpster load rejection."
+            },
+            {
+              keywords: ['translate', 'feedback', 'japanese', 'spanish', 'german', 'language'],
+              reply: "Feedback translation and sentiment analysis runs automatically on incoming posts. Tapping 'Translate' uses Gemini 2.5 Flash to convert feedback, classify sentiment, and route urgent accessibility reports within 5 minutes.",
+              citation: "AlloyDB: feedback_translation_policy (offline)",
+              snippet: "TRANSLATION POLICY 1.8.4: All spectator reports submitted in non-English formats must be translated semantically to identify safety or mobility barriers."
+            },
+            {
+              keywords: ['budget', 'fund', 'cost', 'money'],
+              reply: `Under the current configuration, execution budget remaining is $${metrics.budgetRemaining}M. Major expenses are allocated to electric shuttle dispatch ($6.5M) and solar battery upgrades ($5.0M).`,
+              citation: "AlloyDB: budget_ledger_register (offline)",
+              snippet: "STRATEGIC CAPITAL CODE: Sustainability capital upgrades are capped at $30M total budget. Efficiency must be balanced above 70%."
+            }
+          ];
+
+          // Find keyword match
+          const match = mockDB.find(item => 
+            item.keywords.some(keyword => query.includes(keyword))
+          );
+
+          if (match) {
+            replyText = match.reply;
+            citations = [match.citation];
+            ragSnippet = match.snippet;
           } else {
-            replyText = `Here is information on: "${queryInput}". Under the current configuration, carbon output is ${carbonFootprint} tonnes.`;
-            citations = ["BigQuery: sustainability_kpi_history"];
+            replyText = `Here is information on: "${queryInput}". Under the current configuration, carbon output is ${metrics.carbonFootprint} tonnes.`;
+            citations = ["BigQuery: sustainability_kpi_history (offline)"];
             ragSnippet = "STADIUM GENERAL COMPLIANCE: Systems must monitor and coordinate green energy mix, waste diversion, and accessibility ratings.";
           }
 
@@ -766,7 +830,47 @@ export const EcoAccessProvider = ({ children }) => {
       togglePeakShaving,
       handleChatSubmit,
       translateFeedback,
-      handleTextToSpeech
+      handleTextToSpeech,
+      
+      // Credentials Configuration
+      apiMode, setApiMode,
+      apiKey, setApiKey,
+      gcpProjectId, setGcpProjectId,
+      gcpLocation, setGcpLocation,
+      credsStatus, setCredsStatus,
+      isVerifyingCreds, setIsVerifyingCreds,
+      saveAndVerifyCredentials: (mode, key, projectId, location) => {
+        setIsVerifyingCreds(true);
+        setCredsStatus(null);
+        return fetch('http://localhost:8000/api/credentials', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            apiMode: mode,
+            apiKey: key,
+            gcpProjectId: projectId,
+            gcpLocation: location
+          })
+        })
+          .then(res => res.json())
+          .then(data => {
+            setIsVerifyingCreds(false);
+            setCredsStatus(data);
+            if (data.status === 'success') {
+              setApiMode(mode);
+              setApiKey(key);
+              setGcpProjectId(projectId);
+              setGcpLocation(location);
+            }
+            return data;
+          })
+          .catch(err => {
+            setIsVerifyingCreds(false);
+            const errResult = { status: 'error', message: "Error contacting backend server. Saved locally." };
+            setCredsStatus(errResult);
+            return errResult;
+          });
+      }
     }}>
       {children}
     </EcoAccessContext.Provider>
