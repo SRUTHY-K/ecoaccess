@@ -1,16 +1,16 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 
 const EcoAccessContext = createContext();
 
 export const EcoAccessProvider = ({ children }) => {
   // Navigation
   const [activeTab, setActiveTab] = useState('dashboard');
-  
+
   // Dynamic Product Settings
   const [eventTitle, setEventTitle] = useState('EcoAccess Command Center');
   const [eventSubtitle, setEventSubtitle] = useState('Smart Venue Telemetry, Sustainable Operations & Inclusive Decision Hub');
   const [baseBudget, setBaseBudget] = useState(30.0);
-  
+
   // Custom Dynamic Venue GIS Nodes
   const [mapNodes, setMapNodes] = useState([
     { id: 'node-1', name: 'Venue A: Stadium Arena', x: 50, y: 50, type: 'stadium', alert: 'elevator' },
@@ -31,6 +31,9 @@ export const EcoAccessProvider = ({ children }) => {
   const [activeScenario, setActiveScenario] = useState('normal');
   const [scenarioLogs, setScenarioLogs] = useState([]);
   const [isSimulatingEvent, setIsSimulatingEvent] = useState(false);
+
+  // Toggle for log viewer
+  const [showLogViewer, setShowLogViewer] = useState(true);
 
   // Active Environmental & Accessibility Anomalies
   const [incidents, setIncidents] = useState([
@@ -118,10 +121,10 @@ export const EcoAccessProvider = ({ children }) => {
   // BQ & Gemini Vision States
   const [carbonFootprint, setCarbonFootprint] = useState(86000);
   const [energyForecast, setEnergyForecast] = useState([
-    {"time": "18:00", "value": 680.0},
-    {"time": "19:00", "value": 880.0},
-    {"time": "20:00", "value": 750.0},
-    {"time": "21:00", "value": 520.0}
+    { "time": "18:00", "value": 680.0 },
+    { "time": "19:00", "value": 880.0 },
+    { "time": "20:00", "value": 750.0 },
+    { "time": "21:00", "value": 520.0 }
   ]);
   const [spectatorCount, setSpectatorCount] = useState(50000);
   const [isVisionAnalyzing, setIsVisionAnalyzing] = useState(false);
@@ -136,6 +139,24 @@ export const EcoAccessProvider = ({ children }) => {
   const [isVerifyingCreds, setIsVerifyingCreds] = useState(false);
 
   // Load configuration & credentials on startup
+  // Client Action Logger
+  const logClientAction = (action, details, level = 'INFO', error = null) => {
+    fetch('http://localhost:8000/api/logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        level: level.toUpperCase(),
+        component: 'Frontend',
+        action,
+        details,
+        error: error ? String(error) : null
+      })
+    })
+      .then(() => console.log(`Logged frontend action [${action}]: ${details}`))
+      .catch(err => console.error("Failed to send log to backend: ", err));
+  };
+
+  // Load configuration on startup
   useEffect(() => {
     fetch('http://localhost:8000/api/config')
       .then(res => res.json())
@@ -145,7 +166,9 @@ export const EcoAccessProvider = ({ children }) => {
           setEventSubtitle(data.eventSubtitle);
           setBaseBudget(data.baseBudget);
           setMapNodes(data.mapNodes);
+          setShowLogViewer(data.showLogViewer !== undefined ? data.showLogViewer : true);
         }
+        logClientAction('startup', 'EcoAccess Command Center initialized.');
       })
       .catch(err => console.log("Using local mock configurations (Backend offline)."));
 
@@ -159,8 +182,33 @@ export const EcoAccessProvider = ({ children }) => {
           setGcpLocation(data.gcpLocation || 'us-central1');
         }
       })
-      .catch(err => console.log("Using local mock credentials (Backend offline)."));
+      .catch(err => {
+        logClientAction('startup_warning', 'EcoAccess initialized with offline/local mock fallbacks.', 'WARNING', err);
+      });
   }, []);
+
+  // Track and debounce slider parameters to a single log action (stops spam while dragging)
+  const isMounted = useRef(false);
+  useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
+    const timer = setTimeout(() => {
+      logClientAction('update_sliders', `Allocated resource levels updated: Renewables: ${renewablesShare}%, Transit accessibility: ${transitInclusivity}%, Waste circularity: ${circularEconomyRate}%, Audio description coverage: ${audioAssistCoverage}%`);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [renewablesShare, transitInclusivity, circularEconomyRate, audioAssistCoverage]);
+
+  // Log active tab switches
+  const isTabMounted = useRef(false);
+  useEffect(() => {
+    if (!isTabMounted.current) {
+      isTabMounted.current = true;
+      return;
+    }
+    logClientAction('change_tab', `User navigated to dashboard tab: '${activeTab}'`);
+  }, [activeTab]);
 
   // Update carbon footprint from BigQuery ML when parameters change
   useEffect(() => {
@@ -190,10 +238,10 @@ export const EcoAccessProvider = ({ children }) => {
       .catch(err => {
         // Backend offline: use realistic mock ARIMA forecast
         setEnergyForecast([
-          {"time": "18:00", "value": 680.0},
-          {"time": "19:00", "value": 880.0},
-          {"time": "20:00", "value": 750.0},
-          {"time": "21:00", "value": 520.0}
+          { "time": "18:00", "value": 680.0 },
+          { "time": "19:00", "value": 880.0 },
+          { "time": "20:00", "value": 750.0 },
+          { "time": "21:00", "value": 520.0 }
         ]);
       });
   };
@@ -203,7 +251,8 @@ export const EcoAccessProvider = ({ children }) => {
   }, [activeScenario]);
 
   // Persist configuration
-  const persistConfig = (title, subtitle, budget, nodes) => {
+  const persistConfig = (title, subtitle, budget, nodes, customShowLogs) => {
+    const logsVal = customShowLogs !== undefined ? customShowLogs : showLogViewer;
     fetch('http://localhost:8000/api/config', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -211,12 +260,17 @@ export const EcoAccessProvider = ({ children }) => {
         eventTitle: title,
         eventSubtitle: subtitle,
         baseBudget: budget,
-        mapNodes: nodes
+        mapNodes: nodes,
+        showLogViewer: logsVal
       })
     })
       .then(res => res.json())
-      .then(data => console.log("Event config persisted to Google Cloud database."))
-      .catch(err => console.log("Using local session variables (Backend offline)."));
+      .then(data => {
+        logClientAction('persist_config', `Event settings saved: "${title}" - Logs visible: ${logsVal}`);
+      })
+      .catch(err => {
+        logClientAction('persist_config_failed', 'Failed to persist event configuration on the backend, using local session state.', 'WARNING', err);
+      });
   };
 
   // Demo step simulation triggers
@@ -227,7 +281,7 @@ export const EcoAccessProvider = ({ children }) => {
     setTransitInclusivity(40);
     setCircularEconomyRate(30);
     setAudioAssistCoverage(25);
-    
+
     setIncidents(prev => prev.map(inc => {
       if (inc.id === 'inc-301' || inc.id === 'inc-302' || inc.id === 'inc-303') {
         return { ...inc, status: 'unresolved', dispatcherLog: '' };
@@ -245,6 +299,7 @@ export const EcoAccessProvider = ({ children }) => {
       ...prev
     ]);
 
+    logClientAction('demo_surge_trigger', 'Demo Step 1: Spectator surge triggered (75,000 spectators). Incidents generated.');
     setDemoStep(2);
     setTimeout(() => setIsSimulatingEvent(false), 800);
   };
@@ -252,17 +307,19 @@ export const EcoAccessProvider = ({ children }) => {
   const runBigQueryMLForecast = () => {
     setIsSimulatingEvent(true);
     loadEnergyForecast();
-    
+
     setScenarioLogs(prev => [
       { time: new Date().toLocaleTimeString(), title: "BigQuery ML ARIMA Evaluated", details: "Projected peak power load of 880 kW at Venue C concessions." },
       ...prev
     ]);
-    
+
+    logClientAction('demo_ml_forecast', 'Demo Step 2: Executing BigQuery ML carbon footprint predictions and ARIMA grid demand forecasts.');
     setDemoStep(3);
     setTimeout(() => setIsSimulatingEvent(false), 800);
   };
 
   const triggerPresetVisionAudit = (type) => {
+    logClientAction('demo_vision_audit_preset', `Demo Step 3: Triggering preset waste audit scenario: '${type}'.`);
     if (type === 'contaminated') {
       setIncidents(prev => prev.map(inc => {
         if (inc.id === 'inc-303') {
@@ -296,6 +353,7 @@ export const EcoAccessProvider = ({ children }) => {
     if (!file) return;
 
     setIsVisionAnalyzing(true);
+    logClientAction('cctv_image_upload_start', `Uploading file '${file.name}' for Gemini Vision waste audit.`);
     const formData = new FormData();
     formData.append("file", file);
 
@@ -318,6 +376,7 @@ export const EcoAccessProvider = ({ children }) => {
             }
             return inc;
           }));
+          logClientAction('cctv_image_upload_contamination', `Gemini Vision audit returned contamination: ${data.contaminationDetail} (Fill level: ${data.fillLevel}%)`, 'WARNING');
           alert(`AI Vision Alert: Recycling contamination detected! Details: ${data.contaminationDetail}`);
         } else {
           setIncidents(prev => prev.map(inc => {
@@ -331,20 +390,23 @@ export const EcoAccessProvider = ({ children }) => {
             }
             return inc;
           }));
+          logClientAction('cctv_image_upload_clean', `Gemini Vision audit returned clean bin (Fill level: ${data.fillLevel}%)`);
           alert(`AI Vision Result: No contamination detected. Bin is at ${data.fillLevel}% capacity.`);
         }
         setDemoStep(4);
       })
       .catch(err => {
         setIsVisionAnalyzing(false);
+        logClientAction('cctv_image_upload_failed', 'Gemini Vision waste bin image audit call failed.', 'ERROR', err);
         alert("Error calling Gemini Vision API. Backend might be offline.");
       });
   };
 
   const generateAICopilotBrief = () => {
     setIsTyping(true);
+    logClientAction('demo_copilot_brief_start', 'Demo Step 4: Requesting tactical operational brief from Gemini Copilot.');
     const eventContext = `Event: ${eventTitle}, Spectators: ${spectatorCount}, Renewables: ${renewablesShare}%, Accessibility: ${transitInclusivity}%, Audio Assist: ${audioAssistCoverage}%, Incidents: Elevator E-4 offline, Venue C grid spike, bin contamination.`;
-    
+
     fetch('http://localhost:8000/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -364,18 +426,21 @@ export const EcoAccessProvider = ({ children }) => {
           ragSnippet: data.ragSnippet
         }]);
         setIsTyping(false);
+        logClientAction('demo_copilot_brief_success', 'Gemini Copilot briefing generated and rendered.');
         setDemoStep(5);
       })
       .catch(err => {
         setIsTyping(false);
         const fallbackText = `COPILOT EXECUTIVE SUMMARY:\n1. Carbon Footprint projected at ${carbonFootprint} tonnes. Substation load peak warnings require Solar battery peak shaving.\n2. Accessibility barriers: Elevator E-4 at Gate 6 breakdown blocks wheelchair seats. Maintenance crew dispatch required. Reroute accessible shuttles.\n3. Waste issues: CCTV-12 flagged non-recyclables in compost. Dispatch compost sorters.`;
         setGeminiBrief(fallbackText);
+        logClientAction('demo_copilot_brief_fallback', 'Gemini Copilot API call failed, loaded fallback briefing details.', 'WARNING', err);
         setDemoStep(5);
       });
   };
 
   const queryRAGRules = () => {
     setIsTyping(true);
+    logClientAction('demo_rag_query_start', 'Demo Step 5: Querying compliance standards from AlloyDB pgvector store.');
     fetch('http://localhost:8000/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -394,6 +459,7 @@ export const EcoAccessProvider = ({ children }) => {
           ragSnippet: data.ragSnippet
         }]);
         setIsTyping(false);
+        logClientAction('demo_rag_query_success', `AlloyDB RAG search complete. Snippet retrieved: "${(data.ragSnippet || '').substring(0, 50)}..."`);
         setDemoStep(6);
       })
       .catch(err => {
@@ -406,6 +472,7 @@ export const EcoAccessProvider = ({ children }) => {
           ragSnippet: "Accessibility Rule 4.2.1 & Sustainability Code 6.1.2"
         }]);
         setIsTyping(false);
+        logClientAction('demo_rag_query_fallback', 'AlloyDB RAG API offline, using local standard rules fallback.', 'WARNING', err);
         setDemoStep(6);
       });
   };
@@ -414,10 +481,10 @@ export const EcoAccessProvider = ({ children }) => {
     setSolarPeakShavingActive(true);
     setIncidents(prev => prev.map(inc => {
       if (inc.id === 'inc-301' || inc.id === 'inc-303' || inc.id === 'inc-302' || inc.id === 'inc-304') {
-        return { 
-          ...inc, 
-          status: 'resolved', 
-          dispatcherLog: 'Mitigation completed: AI automated mitigation protocols verified.' 
+        return {
+          ...inc,
+          status: 'resolved',
+          dispatcherLog: 'Mitigation completed: AI automated mitigation protocols verified.'
         };
       }
       return inc;
@@ -437,6 +504,7 @@ export const EcoAccessProvider = ({ children }) => {
       ...prev
     ]);
 
+    logClientAction('demo_mitigations_execute', 'Demo Step 6: Full automated AI mitigations deployed. Substation solar shaving activated. Shuttles increased.');
     setDemoStep(7);
   };
 
@@ -454,14 +522,16 @@ export const EcoAccessProvider = ({ children }) => {
       { id: 'ut-1', msg: 'Venue C: Grid drawing from heavy carbon-intensity supply', severity: 'warning' },
       { id: 'ut-2', msg: 'Venue A: Elevator E-4 offline (Elevated Inclusivity Risk)', severity: 'danger' }
     ]);
+    logClientAction('demo_reset', 'Demo workflow reset to Step 1. All settings normalized.');
   };
 
   // Dispatch individual crew
   const handleDispatch = (id) => {
+    logClientAction('crew_dispatch_start', `Dispatching repair/mitigation crew for incident ID: ${id}`);
     setIncidents(prev => prev.map(inc => {
       if (inc.id === id) {
-        return { 
-          ...inc, 
+        return {
+          ...inc,
           status: 'dispatching',
           dispatcherLog: 'AI Resource Router dispatching optimized crews...'
         };
@@ -485,13 +555,13 @@ export const EcoAccessProvider = ({ children }) => {
               const responderText = id === 'inc-301'
                 ? 'Elevator Repair Crew arrived. Elevator E-4 back online.'
                 : id === 'inc-302'
-                ? 'Solar Battery Substation Unit 3 activated.'
-                : id === 'inc-303'
-                ? 'Sanitation team deployed. Contamination level cleared.'
-                : 'Merchandise vendor relocated. Egress path cleared.';
-              
-              const resolvedIncident = { 
-                ...inc, 
+                  ? 'Solar Battery Substation Unit 3 activated.'
+                  : id === 'inc-303'
+                    ? 'Sanitation team deployed. Contamination level cleared.'
+                    : 'Merchandise vendor relocated. Egress path cleared.';
+
+              const resolvedIncident = {
+                ...inc,
                 status: 'resolved',
                 dispatcherLog: `Success: Mitigation completed. ${responderText}`
               };
@@ -499,6 +569,7 @@ export const EcoAccessProvider = ({ children }) => {
               if (selectedIncident.id === id) {
                 setSelectedIncident(resolvedIncident);
               }
+              logClientAction('crew_dispatch_success', `Dispatch completed for incident ${id}: ${responderText}`);
               return resolvedIncident;
             }
             return inc;
@@ -519,7 +590,8 @@ export const EcoAccessProvider = ({ children }) => {
   const simulateScenario = (scenarioName) => {
     setIsSimulatingEvent(true);
     setActiveScenario(scenarioName);
-    
+    logClientAction('simulate_scenario', `Triggered climate scenario simulation: '${scenarioName}'`);
+
     let scenarioTitle = "";
     let impactText = "";
     if (scenarioName === 'heatwave') {
@@ -544,10 +616,11 @@ export const EcoAccessProvider = ({ children }) => {
   };
 
   const togglePeakShaving = () => {
+    logClientAction('toggle_peak_shaving', `Toggled AI Solar Peak Shaving: ${!solarPeakShavingActive ? 'Enabled' : 'Disabled'}`);
     setSolarPeakShavingActive(prev => {
       const next = !prev;
       if (next) {
-        setUtilityAlerts(prevAlerts => 
+        setUtilityAlerts(prevAlerts =>
           prevAlerts.map(al => {
             if (al.id === 'ut-1') {
               return { ...al, msg: 'Venue C: AI Solar Shaving active. Carbon intensity balanced.', severity: 'info' };
@@ -556,7 +629,7 @@ export const EcoAccessProvider = ({ children }) => {
           })
         );
       } else {
-        setUtilityAlerts(prevAlerts => 
+        setUtilityAlerts(prevAlerts =>
           prevAlerts.map(al => {
             if (al.id === 'ut-1') {
               return { ...al, msg: 'Venue C: Grid drawing from heavy carbon-intensity supply', severity: 'warning' };
@@ -582,6 +655,7 @@ export const EcoAccessProvider = ({ children }) => {
 
     setChatMessages(prev => [...prev, userMsg]);
     const queryInput = chatInput;
+    logClientAction('submit_chat', `Submitted operator query to Gemini Copilot: "${queryInput}"`);
     setChatInput('');
     setIsTyping(true);
 
@@ -602,6 +676,7 @@ export const EcoAccessProvider = ({ children }) => {
           ragSnippet: data.ragSnippet
         }]);
         setIsTyping(false);
+        logClientAction('chat_response_success', `Received response from Gemini Copilot. Citations: ${data.citations.join(', ')}`);
       })
       .catch(err => {
         setTimeout(() => {
@@ -651,7 +726,7 @@ export const EcoAccessProvider = ({ children }) => {
           ];
 
           // Find keyword match
-          const match = mockDB.find(item => 
+          const match = mockDB.find(item =>
             item.keywords.some(keyword => query.includes(keyword))
           );
 
@@ -673,12 +748,14 @@ export const EcoAccessProvider = ({ children }) => {
             ragSnippet
           }]);
           setIsTyping(false);
+          logClientAction('chat_response_fallback', 'Gemini Copilot API call failed. Rendered local mock fallback response.', 'WARNING', err);
         }, 1000);
       });
   };
 
   // Real-time Spanish/Japanese translation call
   const translateFeedback = (id, text) => {
+    logClientAction('translate_feedback_start', `Requested translation and sentiment audit for feedback ID: ${id}`);
     fetch('http://localhost:8000/api/translate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -698,8 +775,11 @@ export const EcoAccessProvider = ({ children }) => {
           }
           return feed;
         }));
+        logClientAction('translate_feedback_success', `Feedback ${id} processed: category: ${data.category}, sentiment: ${data.sentiment}, urgency: ${data.urgency}`);
       })
-      .catch(err => console.log("Translation service offline, using mock."));
+      .catch(err => {
+        logClientAction('translate_feedback_fallback', `Translation API offline for feedback ID: ${id}. Using local translation metadata fallback.`, 'WARNING', err);
+      });
   };
 
   // Recalculate metrics dynamically
@@ -707,15 +787,15 @@ export const EcoAccessProvider = ({ children }) => {
     let baseInclusivityIndex = 45;
     let baseWasteDiversion = 12;
     let baseFanSat = 58;
-    
+
     let baseEnergyMix = 15 + (renewablesShare / 100) * 75;
     baseWasteDiversion += (circularEconomyRate / 100) * 82;
-    
+
     baseInclusivityIndex += (transitInclusivity / 100) * 30 + (audioAssistCoverage / 100) * 20;
-    
-    baseFanSat += (transitInclusivity / 100) * 12 
-      + (circularEconomyRate / 100) * 5 
-      + (renewablesShare / 100) * 5 
+
+    baseFanSat += (transitInclusivity / 100) * 12
+      + (circularEconomyRate / 100) * 5
+      + (renewablesShare / 100) * 5
       + (audioAssistCoverage / 100) * 10;
 
     if (activeScenario === 'heatwave') {
@@ -766,6 +846,7 @@ export const EcoAccessProvider = ({ children }) => {
       if (window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
         setIsSpeaking(false);
+        logClientAction('text_to_speech_stop', 'TTS playback stopped by user.');
         return;
       }
 
@@ -775,9 +856,13 @@ export const EcoAccessProvider = ({ children }) => {
       The remaining execution budget is ${metrics.budgetRemaining} million dollars.`;
 
       const utterance = new SpeechSynthesisUtterance(textToRead);
-      utterance.onend = () => setIsSpeaking(false);
-      
+      utterance.onend = () => {
+        setIsSpeaking(false);
+        logClientAction('text_to_speech_finish', 'TTS playback finished successfully.');
+      };
+
       setIsSpeaking(true);
+      logClientAction('text_to_speech_start', 'TTS playback started by user.');
       window.speechSynthesis.speak(utterance);
     }
   };
@@ -831,7 +916,7 @@ export const EcoAccessProvider = ({ children }) => {
       handleChatSubmit,
       translateFeedback,
       handleTextToSpeech,
-      
+
       // Credentials Configuration
       apiMode, setApiMode,
       apiKey, setApiKey,

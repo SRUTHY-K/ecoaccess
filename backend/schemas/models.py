@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class ChatRequest(BaseModel):
     query: str
@@ -18,3 +19,12 @@ class CredentialsConfig(BaseModel):
     apiKey: str = ""
     gcpProjectId: str = ""
     gcpLocation: str = ""
+    showLogViewer: Optional[bool] = True
+
+class LogEntryRequest(BaseModel):
+    level: str
+    component: str
+    action: str
+    details: str
+    error: Optional[str] = None
+

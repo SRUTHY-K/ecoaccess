@@ -8,6 +8,7 @@ import BigQueryML from './components/BigQueryML';
 import SustainabilityChat from './components/SustainabilityChat';
 import { StrategicSliders } from './components/StrategicBlueprint';
 import ProductConfigurator from './components/ProductConfigurator';
+import LogViewer from './components/LogViewer';
 
 import './App.css';
 
@@ -57,6 +58,9 @@ function DashboardContent() {
 
         {/* TAB 7: KNOWLEDGE ASSISTANT */}
         {activeTab === 'settings' && <ProductConfigurator />}
+
+        {/* TAB 8: SYSTEM LOGS */}
+        {activeTab === 'logs' && <LogViewer />}
       </div>
     </div>
   );

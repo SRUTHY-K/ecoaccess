@@ -6,15 +6,50 @@ backend_dir = os.path.dirname(os.path.abspath(__file__))
 if backend_dir not in sys.path:
     sys.path.insert(0, backend_dir)
 
-from fastapi import FastAPI
+import time
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from core.config import CONFIG_FILE
+from core.logger import log_event
 from services.rag_service import add_document_to_rag
 from api.routes import router as api_router
 
 app = FastAPI(title="EcoAccess SaaS Backend")
+
+# HTTP Request Logging Middleware
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+    method = request.method
+    url = str(request.url)
+    client_ip = request.client.host if request.client else "unknown"
+    
+    try:
+        response = await call_next(request)
+        process_time = (time.time() - start_time) * 1000
+        status_code = response.status_code
+        
+        # Exclude GET/POST /api/logs to prevent infinite logging loops when the UI fetches logs
+        if "/api/logs" not in url:
+            log_event(
+                level="INFO",
+                component="Middleware",
+                action="http_request",
+                details=f"{method} {request.url.path} - Status: {status_code} - Duration: {process_time:.2f}ms - IP: {client_ip}"
+            )
+        return response
+    except Exception as e:
+        process_time = (time.time() - start_time) * 1000
+        log_event(
+            level="ERROR",
+            component="Middleware",
+            action="http_request_failed",
+            details=f"{method} {request.url.path} failed after {process_time:.2f}ms - IP: {client_ip}",
+            error=str(e)
+        )
+        raise e
 
 # Setup CORS middleware
 app.add_middleware(
