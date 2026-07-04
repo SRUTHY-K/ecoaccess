@@ -73,10 +73,6 @@ def save_config(config: EventConfig):
     log_event("INFO", "Backend", "save_config", "Event configuration persisted successfully.")
     return {"status": "success"}
 
-@router.get("/credentials")
-def handle_get_credentials():
-    return get_credentials()
-
 @router.post("/credentials")
 def handle_save_credentials(creds: CredentialsConfig):
     os.makedirs(os.path.dirname(CREDENTIALS_FILE), exist_ok=True)

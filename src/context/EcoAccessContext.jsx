@@ -32,9 +32,6 @@ export const EcoAccessProvider = ({ children }) => {
   const [scenarioLogs, setScenarioLogs] = useState([]);
   const [isSimulatingEvent, setIsSimulatingEvent] = useState(false);
 
-  // Toggle for log viewer
-  const [showLogViewer, setShowLogViewer] = useState(true);
-
   // Active Environmental & Accessibility Anomalies
   const [incidents, setIncidents] = useState([
     {
@@ -141,19 +138,14 @@ export const EcoAccessProvider = ({ children }) => {
   // Load configuration & credentials on startup
   // Client Action Logger
   const logClientAction = (action, details, level = 'INFO', error = null) => {
-    fetch('http://localhost:8000/api/logs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        level: level.toUpperCase(),
-        component: 'Frontend',
-        action,
-        details,
-        error: error ? String(error) : null
-      })
-    })
-      .then(() => console.log(`Logged frontend action [${action}]: ${details}`))
-      .catch(err => console.error("Failed to send log to backend: ", err));
+    const formattedLog = `[${level.toUpperCase()}] [Frontend] [${action}] ${details}${error ? ` | Error: ${error}` : ''}`;
+    if (level.toUpperCase() === 'ERROR') {
+      console.error(formattedLog);
+    } else if (level.toUpperCase() === 'WARNING') {
+      console.warn(formattedLog);
+    } else {
+      console.log(formattedLog);
+    }
   };
 
   // Load configuration on startup
@@ -166,7 +158,6 @@ export const EcoAccessProvider = ({ children }) => {
           setEventSubtitle(data.eventSubtitle);
           setBaseBudget(data.baseBudget);
           setMapNodes(data.mapNodes);
-          setShowLogViewer(data.showLogViewer !== undefined ? data.showLogViewer : true);
         }
         logClientAction('startup', 'EcoAccess Command Center initialized.');
       })
@@ -251,8 +242,7 @@ export const EcoAccessProvider = ({ children }) => {
   }, [activeScenario]);
 
   // Persist configuration
-  const persistConfig = (title, subtitle, budget, nodes, customShowLogs) => {
-    const logsVal = customShowLogs !== undefined ? customShowLogs : showLogViewer;
+  const persistConfig = (title, subtitle, budget, nodes) => {
     fetch('http://localhost:8000/api/config', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -260,13 +250,12 @@ export const EcoAccessProvider = ({ children }) => {
         eventTitle: title,
         eventSubtitle: subtitle,
         baseBudget: budget,
-        mapNodes: nodes,
-        showLogViewer: logsVal
+        mapNodes: nodes
       })
     })
       .then(res => res.json())
       .then(data => {
-        logClientAction('persist_config', `Event settings saved: "${title}" - Logs visible: ${logsVal}`);
+        logClientAction('persist_config', `Event settings saved: "${title}"`);
       })
       .catch(err => {
         logClientAction('persist_config_failed', 'Failed to persist event configuration on the backend, using local session state.', 'WARNING', err);
@@ -916,46 +905,7 @@ export const EcoAccessProvider = ({ children }) => {
       handleChatSubmit,
       translateFeedback,
       handleTextToSpeech,
-
-      // Credentials Configuration
-      apiMode, setApiMode,
-      apiKey, setApiKey,
-      gcpProjectId, setGcpProjectId,
-      gcpLocation, setGcpLocation,
-      credsStatus, setCredsStatus,
-      isVerifyingCreds, setIsVerifyingCreds,
-      saveAndVerifyCredentials: (mode, key, projectId, location) => {
-        setIsVerifyingCreds(true);
-        setCredsStatus(null);
-        return fetch('http://localhost:8000/api/credentials', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            apiMode: mode,
-            apiKey: key,
-            gcpProjectId: projectId,
-            gcpLocation: location
-          })
-        })
-          .then(res => res.json())
-          .then(data => {
-            setIsVerifyingCreds(false);
-            setCredsStatus(data);
-            if (data.status === 'success') {
-              setApiMode(mode);
-              setApiKey(key);
-              setGcpProjectId(projectId);
-              setGcpLocation(location);
-            }
-            return data;
-          })
-          .catch(err => {
-            setIsVerifyingCreds(false);
-            const errResult = { status: 'error', message: "Error contacting backend server. Saved locally." };
-            setCredsStatus(errResult);
-            return errResult;
-          });
-      }
+      logClientAction
     }}>
       {children}
     </EcoAccessContext.Provider>

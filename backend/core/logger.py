@@ -2,7 +2,6 @@ import os
 import json
 import logging
 from datetime import datetime, timezone
-from logging.handlers import RotatingFileHandler
 
 class JSONLinesFormatter(logging.Formatter):
     def format(self, record):
@@ -22,12 +21,6 @@ class JSONLinesFormatter(logging.Formatter):
             
         return json.dumps(log_obj)
 
-# Create logs directory under backend/
-BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOGS_DIR = os.path.join(BACKEND_DIR, "logs")
-os.makedirs(LOGS_DIR, exist_ok=True)
-LOG_FILE = os.path.join(LOGS_DIR, "ecoaccess.log")
-
 # Setup logger
 logger = logging.getLogger("ecoaccess")
 logger.setLevel(logging.INFO)
@@ -40,15 +33,9 @@ if not logger.handlers:
     console_handler.setFormatter(JSONLinesFormatter())
     logger.addHandler(console_handler)
 
-    # Rotating File Handler (10MB size limit per file, rotating 5 backups)
-    file_handler = RotatingFileHandler(LOG_FILE, maxBytes=10*1024*1024, backupCount=5, encoding="utf-8")
-    file_handler.setLevel(logging.INFO)
-    file_handler.setFormatter(JSONLinesFormatter())
-    logger.addHandler(file_handler)
-
 def log_event(level: str, component: str, action: str, details: str, error: str = None):
     """
-    Helper helper function to log structured actions and errors.
+    Helper function to log structured actions and errors to stdout.
     """
     extra = {
         "component": component,

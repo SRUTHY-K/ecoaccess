@@ -18,12 +18,12 @@ from api.routes import router as api_router
 
 app = FastAPI(title="EcoAccess SaaS Backend")
 
-# HTTP Request Logging Middleware
+# HTTP Request Logging Middleware (Outputs Structured JSON to stdout)
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     start_time = time.time()
     method = request.method
-    url = str(request.url)
+    path = request.url.path
     client_ip = request.client.host if request.client else "unknown"
     
     try:
@@ -31,14 +31,12 @@ async def log_requests(request: Request, call_next):
         process_time = (time.time() - start_time) * 1000
         status_code = response.status_code
         
-        # Exclude GET/POST /api/logs to prevent infinite logging loops when the UI fetches logs
-        if "/api/logs" not in url:
-            log_event(
-                level="INFO",
-                component="Middleware",
-                action="http_request",
-                details=f"{method} {request.url.path} - Status: {status_code} - Duration: {process_time:.2f}ms - IP: {client_ip}"
-            )
+        log_event(
+            level="INFO",
+            component="Middleware",
+            action="http_request",
+            details=f"{method} {path} - Status: {status_code} - Duration: {process_time:.2f}ms - IP: {client_ip}"
+        )
         return response
     except Exception as e:
         process_time = (time.time() - start_time) * 1000
@@ -46,16 +44,22 @@ async def log_requests(request: Request, call_next):
             level="ERROR",
             component="Middleware",
             action="http_request_failed",
-            details=f"{method} {request.url.path} failed after {process_time:.2f}ms - IP: {client_ip}",
+            details=f"{method} {path} failed after {process_time:.2f}ms - IP: {client_ip}",
             error=str(e)
         )
         raise e
 
 # Setup CORS middleware
+allowed_origins_env = os.environ.get("ALLOWED_ORIGINS", "")
+if allowed_origins_env:
+    allowed_origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
+else:
+    allowed_origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=allowed_origins,
+    allow_credentials=True if allowed_origins != ["*"] else False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

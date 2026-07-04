@@ -25,8 +25,7 @@ export default function Sidebar() {
     fontSizeClass,
     setFontSizeClass,
     isSpeaking,
-    handleTextToSpeech,
-    showLogViewer
+    handleTextToSpeech
   } = useEcoAccess();
 
   return (
@@ -61,17 +60,6 @@ export default function Sidebar() {
           <Settings className="nav-icon" size={18} />
           Knowledge Assistant
         </button>
-
-        {showLogViewer && (
-          <button 
-            className={`nav-item ${activeTab === 'logs' ? 'active' : ''}`}
-            onClick={() => setActiveTab('logs')}
-            title="System Telemetry Logs"
-          >
-            <FileText className="nav-icon" size={18} />
-            System Logs
-          </button>
-        )}
       </nav>
 
       {/* ACCESSIBILITY TOGGLE PANEL */}

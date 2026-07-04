@@ -8,6 +8,7 @@ export default function ProductConfigurator() {
     eventSubtitle, setEventSubtitle,
     baseBudget, setBaseBudget,
     mapNodes, setMapNodes,
+<<<<<<< HEAD
     persistConfig,
     
     // AI Credentials Config
@@ -18,6 +19,9 @@ export default function ProductConfigurator() {
     credsStatus,
     isVerifyingCreds,
     saveAndVerifyCredentials
+=======
+    persistConfig
+>>>>>>> f01195d (Refactor: remove local file logging, clean up LogViewer UI, and implement cloud-native structured stdout JSON logging middleware)
   } = useEcoAccess();
 
   return (
@@ -77,18 +81,6 @@ export default function ProductConfigurator() {
             />
           </div>
 
-          <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
-            <input 
-              type="checkbox" 
-              id="show-log-viewer"
-              checked={showLogViewer} 
-              onChange={(e) => setShowLogViewer(e.target.checked)} 
-              style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-            />
-            <label htmlFor="show-log-viewer" className="form-label" style={{ fontSize: '0.85rem', color: '#fff', cursor: 'pointer', fontWeight: 'bold' }}>
-              Enable System Log Viewer Tab
-            </label>
-          </div>
         </div>
 
         {/* Map Nodes Config */}
@@ -169,7 +161,7 @@ export default function ProductConfigurator() {
           <button 
             className="button primary" 
             style={{ marginTop: '1rem', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', border: 'none' }}
-            onClick={() => persistConfig(eventTitle, eventSubtitle, baseBudget, mapNodes, showLogViewer)}
+            onClick={() => persistConfig(eventTitle, eventSubtitle, baseBudget, mapNodes)}
           >
             <Check size={16} /> Save & Persist Configuration to Google Cloud
           </button>
