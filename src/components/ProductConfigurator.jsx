@@ -8,7 +8,6 @@ export default function ProductConfigurator() {
     eventSubtitle, setEventSubtitle,
     baseBudget, setBaseBudget,
     mapNodes, setMapNodes,
-<<<<<<< HEAD
     persistConfig,
     
     // AI Credentials Config
@@ -19,9 +18,6 @@ export default function ProductConfigurator() {
     credsStatus,
     isVerifyingCreds,
     saveAndVerifyCredentials
-=======
-    persistConfig
->>>>>>> f01195d (Refactor: remove local file logging, clean up LogViewer UI, and implement cloud-native structured stdout JSON logging middleware)
   } = useEcoAccess();
 
   return (

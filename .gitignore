@@ -32,3 +32,6 @@ __pycache__/
 .pytest_cache/
 .venv
 
+# Local credentials config
+data
+

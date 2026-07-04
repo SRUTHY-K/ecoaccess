@@ -91,10 +91,10 @@ export const EcoAccessProvider = ({ children }) => {
 
   // Multilingual Spectator Feeds
   const [spectatorFeedbacks, setSpectatorFeedbacks] = useState([
-    { id: 'spec-1', category: 'Accessibility', language: 'Spanish', text: 'No hay rampas cerca del estacionamiento norte, tuve que dar una vuelta enorme en mi silla de ruedas.', translation: 'There are no ramps near the north parking lot, I had to take a huge detour in my wheelchair.', date: 'Today', sentiment: 'negative', urgency: 'high' },
+    { id: 'spec-1', category: 'Accessibility', language: 'Spanish', text: 'No hay rampas cerca del estacionamiento norte, tuve que dar una vuelta enorme en mi silla de ruedas.', translation: '', date: 'Today', sentiment: 'negative', urgency: 'high' },
     { id: 'spec-2', category: 'Energy', language: 'English', text: 'The stadium floodlights are running in broad daylight. Total waste of solar energy.', translation: '', date: 'Today', sentiment: 'negative', urgency: 'medium' },
-    { id: 'spec-3', category: 'Inclusivity', language: 'Japanese', text: '音声ガイド機器のバッテリーが切れています。視覚障害者向けのサポートが不十分です。', translation: 'The audio guide device batteries are dead. Support for visually impaired fans is insufficient.', date: 'Yesterday', sentiment: 'negative', urgency: 'high' },
-    { id: 'spec-4', category: 'Waste', language: 'German', text: 'Warum gibt es Plastikbecher? Ich dachte, dieses Turnier ist eine Null-Abfall-Zone.', translation: 'Why are there plastic cups? I thought this tournament was a zero-waste zone.', date: 'Today', sentiment: 'negative', urgency: 'medium' }
+    { id: 'spec-3', category: 'Inclusivity', language: 'Japanese', text: '音声ガイド機器のバッテリーが切れています。視覚障害者向けのサポートが不十分です。', translation: '', date: 'Yesterday', sentiment: 'negative', urgency: 'high' },
+    { id: 'spec-4', category: 'Waste', language: 'German', text: 'Warum gibt es Plastikbecher? Ich dachte, dieses Turnier ist eine Null-Abfall-Zone.', translation: '', date: 'Today', sentiment: 'negative', urgency: 'medium' }
   ]);
 
   // AI Chat Co-Pilot
@@ -177,6 +177,37 @@ export const EcoAccessProvider = ({ children }) => {
         logClientAction('startup_warning', 'EcoAccess initialized with offline/local mock fallbacks.', 'WARNING', err);
       });
   }, []);
+
+  const saveAndVerifyCredentials = (mode, key, projectId, location) => {
+    setIsVerifyingCreds(true);
+    setCredsStatus(null);
+    return fetch('http://localhost:8000/api/credentials', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        apiMode: mode,
+        apiKey: key,
+        gcpProjectId: projectId,
+        gcpLocation: location
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        setIsVerifyingCreds(false);
+        setCredsStatus(data);
+        if (data.status === 'success') {
+          setApiMode(mode);
+          setApiKey(key);
+          setGcpProjectId(projectId);
+          setGcpLocation(location);
+        }
+        return data;
+      })
+      .catch(err => {
+        setIsVerifyingCreds(false);
+        setCredsStatus({ status: 'error', message: 'Failed to connect to backend configuration server.' });
+      });
+  };
 
   // Track and debounce slider parameters to a single log action (stops spam while dragging)
   const isMounted = useRef(false);
@@ -392,15 +423,24 @@ export const EcoAccessProvider = ({ children }) => {
   };
 
   const generateAICopilotBrief = () => {
+    const queryStr = "Provide a unified tactical operations brief regarding the active spectator surge, the energy overload grid warning, and accessibility/waste issues.";
+    
+    // Display user query in chat log
+    setChatMessages(prev => [...prev, {
+      sender: 'user',
+      text: queryStr,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    }]);
+
     setIsTyping(true);
     logClientAction('demo_copilot_brief_start', 'Demo Step 4: Requesting tactical operational brief from Gemini Copilot.');
     const eventContext = `Event: ${eventTitle}, Spectators: ${spectatorCount}, Renewables: ${renewablesShare}%, Accessibility: ${transitInclusivity}%, Audio Assist: ${audioAssistCoverage}%, Incidents: Elevator E-4 offline, Venue C grid spike, bin contamination.`;
-
+ 
     fetch('http://localhost:8000/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        query: "Provide a unified tactical operations brief regarding the active spectator surge, the energy overload grid warning, and accessibility/waste issues.",
+        query: queryStr,
         context: eventContext
       })
     })
@@ -422,19 +462,34 @@ export const EcoAccessProvider = ({ children }) => {
         setIsTyping(false);
         const fallbackText = `COPILOT EXECUTIVE SUMMARY:\n1. Carbon Footprint projected at ${carbonFootprint} tonnes. Substation load peak warnings require Solar battery peak shaving.\n2. Accessibility barriers: Elevator E-4 at Gate 6 breakdown blocks wheelchair seats. Maintenance crew dispatch required. Reroute accessible shuttles.\n3. Waste issues: CCTV-12 flagged non-recyclables in compost. Dispatch compost sorters.`;
         setGeminiBrief(fallbackText);
+        setChatMessages(prev => [...prev, {
+          sender: 'ai',
+          text: fallbackText,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          citations: ["Vertex AI Copilot (offline fallback)"]
+        }]);
         logClientAction('demo_copilot_brief_fallback', 'Gemini Copilot API call failed, loaded fallback briefing details.', 'WARNING', err);
         setDemoStep(5);
       });
   };
-
+ 
   const queryRAGRules = () => {
+    const queryStr = "What are the rules regarding elevator breakdowns and public transit carbon offsets?";
+    
+    // Display user query in chat log
+    setChatMessages(prev => [...prev, {
+      sender: 'user',
+      text: queryStr,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    }]);
+
     setIsTyping(true);
     logClientAction('demo_rag_query_start', 'Demo Step 5: Querying compliance standards from AlloyDB pgvector store.');
     fetch('http://localhost:8000/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        query: "What are the rules regarding elevator breakdowns and public transit carbon offsets?",
+        query: queryStr,
         context: "Event: EcoAccess Command Center"
       })
     })
@@ -678,6 +733,12 @@ export const EcoAccessProvider = ({ children }) => {
           // Free Mock Knowledge Base
           const mockDB = [
             {
+              keywords: ['hi', 'hello', 'hey', 'greetings', 'morning', 'afternoon'],
+              reply: "Hello! I am Gemini, your EcoAccess Global Event Co-pilot. I analyze on-site energy grids, waste diversion streams, and accessibility infrastructure in real-time. Ask me about elevator breakdowns near Gate 6, peak grid loads at Venue C, recycling bin audits, or compliance regulations!",
+              citation: "Vertex AI Copilot (offline greeting)",
+              snippet: "ECOACCESS CHAT MANUAL: Gemini assists operators in managing carbon, waste, and inclusivity metrics via unified operational telemetry analysis."
+            },
+            {
               keywords: ['elevator', 'gate 6', 'access', 'wheelchair', 'mobility', 'barrier'],
               reply: "Accessibility Alert: Elevator E-4 near Gate 6 is currently offline. Accessibility paths have been rerouted to auxiliary ramps. A repair crew is dispatched and on-route.",
               citation: "AlloyDB: elevator_status_register (offline)",
@@ -769,6 +830,50 @@ export const EcoAccessProvider = ({ children }) => {
       })
       .catch(err => {
         logClientAction('translate_feedback_fallback', `Translation API offline for feedback ID: ${id}. Using local translation metadata fallback.`, 'WARNING', err);
+        
+        // High-fidelity local fallback mapping when backend is offline
+        const textLower = text.toLowerCase();
+        let translation = text;
+        let category = 'Inclusivity';
+        let urgency = 'medium';
+        let sentiment = 'neutral';
+        
+        if (textLower.includes('rampas') || textLower.includes('estacionamiento')) {
+          translation = "There are no ramps near the north parking lot, I had to take a huge detour in my wheelchair.";
+          category = "Accessibility";
+          urgency = "high";
+          sentiment = "negative";
+        } else if (textLower.includes('音声ガイド') || textLower.includes('バッテリー')) {
+          translation = "The audio guide device batteries are dead. Support for visually impaired fans is insufficient.";
+          category = "Inclusivity";
+          urgency = "high";
+          sentiment = "negative";
+        } else if (textLower.includes('plastikbecher') || textLower.includes('abfall')) {
+          translation = "Why are there plastic cups? I thought this tournament was a zero-waste zone.";
+          category = "Waste";
+          urgency = "medium";
+          sentiment = "negative";
+        } else if (textLower.includes('floodlights') || textLower.includes('daylight')) {
+          translation = "The stadium floodlights are running in broad daylight. Total waste of solar energy.";
+          category = "Energy";
+          urgency = "medium";
+          sentiment = "negative";
+        } else {
+          translation = `[Offline Fallback] ${text}`;
+        }
+        
+        setSpectatorFeedbacks(prev => prev.map(feed => {
+          if (feed.id === id) {
+            return {
+              ...feed,
+              translation,
+              sentiment,
+              urgency,
+              category
+            };
+          }
+          return feed;
+        }));
       });
   };
 
@@ -906,7 +1011,14 @@ export const EcoAccessProvider = ({ children }) => {
       handleChatSubmit,
       translateFeedback,
       handleTextToSpeech,
-      logClientAction
+      logClientAction,
+      apiMode, setApiMode,
+      apiKey, setApiKey,
+      gcpProjectId, setGcpProjectId,
+      gcpLocation, setGcpLocation,
+      credsStatus, setCredsStatus,
+      isVerifyingCreds, setIsVerifyingCreds,
+      saveAndVerifyCredentials
     }}>
       {children}
     </EcoAccessContext.Provider>

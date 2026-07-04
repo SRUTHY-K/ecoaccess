@@ -47,7 +47,7 @@ async def log_requests(request: Request, call_next):
             details=f"{method} {path} failed after {process_time:.2f}ms - IP: {client_ip}",
             error=str(e)
         )
-raise
+        raise
 
 # Setup CORS middleware
 allowed_origins_env = os.environ.get("ALLOWED_ORIGINS", "")

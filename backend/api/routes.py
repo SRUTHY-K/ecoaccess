@@ -84,6 +84,7 @@ def handle_save_credentials(creds: CredentialsConfig):
             if creds.apiMode == "ai_studio":
                 if not creds.apiKey:
                     return {"status": "error", "message": "API Key is required for Google AI Studio mode."}
+                os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "False"
                 test_client = genai.Client(api_key=creds.apiKey)
             else: # vertex_ai
                 # Override env variables to check client
