@@ -8,7 +8,16 @@ export default function ProductConfigurator() {
     eventSubtitle, setEventSubtitle,
     baseBudget, setBaseBudget,
     mapNodes, setMapNodes,
-    persistConfig
+    persistConfig,
+    
+    // AI Credentials Config
+    apiMode, setApiMode,
+    apiKey, setApiKey,
+    gcpProjectId, setGcpProjectId,
+    gcpLocation, setGcpLocation,
+    credsStatus,
+    isVerifyingCreds,
+    saveAndVerifyCredentials
   } = useEcoAccess();
 
   return (
@@ -209,6 +218,113 @@ export default function ProductConfigurator() {
           >
             Embed & Index into AlloyDB
           </button>
+        </div>
+      </div>
+
+      {/* SECTION 4: AI & MODEL CREDENTIALS CONFIGURATION */}
+      <div style={{ marginTop: '2rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+        <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--color-text-secondary)', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>
+          4. AI Copilot & Model Credentials
+        </span>
+        <p className="report-p" style={{ marginBottom: '1.5rem' }}>
+          Configure the credentials for the **Gemini 2.5 Flash** models used in the chat copilot, translation feed, and waste audit camera streams.
+        </p>
+
+        <div className="credentials-setup-card">
+          <label className="form-label" style={{ marginBottom: '0.5rem' }}>Select Provider Mode</label>
+          <div className="credentials-provider-selector">
+            <button 
+              className={`credentials-provider-btn ${apiMode === 'mock' ? 'active' : ''}`}
+              onClick={() => setApiMode('mock')}
+            >
+              Offline Mock Mode
+            </button>
+            <button 
+              className={`credentials-provider-btn ${apiMode === 'ai_studio' ? 'active' : ''}`}
+              onClick={() => setApiMode('ai_studio')}
+            >
+              Google AI Studio (Key)
+            </button>
+            <button 
+              className={`credentials-provider-btn ${apiMode === 'vertex_ai' ? 'active' : ''}`}
+              onClick={() => setApiMode('vertex_ai')}
+            >
+              Vertex AI (GCP)
+            </button>
+          </div>
+
+          {/* Conditional inputs */}
+          {apiMode === 'mock' && (
+            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', padding: '0.5rem', background: 'rgba(255,255,255,0.01)', border: '1px dashed var(--border-color)', borderRadius: '6px', marginBottom: '1.5rem' }}>
+              ℹ️ <strong>Offline Simulation Mode Active:</strong> The application does not require any credentials. It will instantly return realistic pre-programmed responses from local templates.
+            </div>
+          )}
+
+          {apiMode === 'ai_studio' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
+              <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <label className="form-label">Gemini API Key</label>
+                <input 
+                  type="password"
+                  className="chat-input"
+                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.5rem', color: '#fff' }}
+                  placeholder="AIzaSy..."
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                />
+                <span style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)' }}>
+                  Get a free API Key from <a href="https://aistudio.google.com/" target="_blank" rel="noreferrer" style={{ color: 'var(--color-accent-indigo)' }}>Google AI Studio</a>.
+                </span>
+              </div>
+            </div>
+          )}
+
+          {apiMode === 'vertex_ai' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
+              <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <label className="form-label">GCP Project ID</label>
+                <input 
+                  type="text"
+                  className="chat-input"
+                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.5rem', color: '#fff' }}
+                  placeholder="your-project-id"
+                  value={gcpProjectId}
+                  onChange={(e) => setGcpProjectId(e.target.value)}
+                />
+              </div>
+              <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <label className="form-label">GCP Compute Location</label>
+                <input 
+                  type="text"
+                  className="chat-input"
+                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.5rem', color: '#fff' }}
+                  placeholder="us-central1"
+                  value={gcpLocation}
+                  onChange={(e) => setGcpLocation(e.target.value)}
+                />
+              </div>
+              <div style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)', padding: '0.5rem', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-color)', borderRadius: '4px', marginBottom: '1rem' }}>
+                🔑 Requires Google Application Default Credentials (ADC) to be configured in your local environment. Run <code>gcloud auth application-default login</code> in your shell first.
+              </div>
+            </div>
+          )}
+
+          {/* Test & Save buttons */}
+          <button 
+            className="button primary" 
+            style={{ width: '100%', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+            disabled={isVerifyingCreds}
+            onClick={() => saveAndVerifyCredentials(apiMode, apiKey, gcpProjectId, gcpLocation)}
+          >
+            {isVerifyingCreds ? 'Verifying Connection...' : 'Save & Verify AI connection'}
+          </button>
+
+          {/* Status Display */}
+          {credsStatus && (
+            <div className={`credentials-test-status ${credsStatus.status}`}>
+              {credsStatus.status === 'success' ? '✅' : '❌'} {credsStatus.message}
+            </div>
+          )}
         </div>
       </div>
 

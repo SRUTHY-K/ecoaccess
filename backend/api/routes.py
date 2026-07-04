@@ -1,8 +1,8 @@
 import os
 import json
 from fastapi import APIRouter, Form, File, UploadFile, HTTPException
-from schemas.models import ChatRequest, FeedbackRequest, EventConfig
-from core.config import CONFIG_FILE
+from schemas.models import ChatRequest, FeedbackRequest, EventConfig, CredentialsConfig
+from core.config import CONFIG_FILE, CREDENTIALS_FILE, get_credentials
 from services.ai_service import chat_copilot, translate_and_analyze_feedback, detect_waste_gemini
 from services.rag_service import add_document_to_rag
 from services.bq_service import predict_carbon_emissions_bq, forecast_energy_demand_bq
@@ -70,3 +70,40 @@ def save_config(config: EventConfig):
     with open(CONFIG_FILE, "w") as f:
         json.dump(config.model_dump(), f, indent=2)
     return {"status": "success"}
+
+@router.get("/credentials")
+def handle_get_credentials():
+    return get_credentials()
+
+@router.post("/credentials")
+def handle_save_credentials(creds: CredentialsConfig):
+    os.makedirs(os.path.dirname(CREDENTIALS_FILE), exist_ok=True)
+    
+    # If mode is not mock, test the connection
+    if creds.apiMode != "mock":
+        from google import genai
+        try:
+            if creds.apiMode == "ai_studio":
+                if not creds.apiKey:
+                    return {"status": "error", "message": "API Key is required for Google AI Studio mode."}
+                test_client = genai.Client(api_key=creds.apiKey)
+            else: # vertex_ai
+                # Override env variables to check client
+                os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
+                if creds.gcpProjectId:
+                    os.environ["GOOGLE_CLOUD_PROJECT"] = creds.gcpProjectId
+                if creds.gcpLocation:
+                    os.environ["GOOGLE_CLOUD_LOCATION"] = creds.gcpLocation
+                test_client = genai.Client()
+            
+            # Run light check
+            test_client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents="Ping"
+            )
+        except Exception as e:
+            return {"status": "error", "message": f"Connection verification failed: {e}"}
+            
+    with open(CREDENTIALS_FILE, "w") as f:
+        json.dump(creds.model_dump(), f, indent=2)
+    return {"status": "success", "message": "Credentials configured and verified successfully!"}

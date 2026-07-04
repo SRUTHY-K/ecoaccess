@@ -10,6 +10,32 @@ export default function LiveCCTV() {
   const unresolvedContam = incidents.find(i => i.id === 'inc-303')?.status !== 'resolved';
   const unresolvedEgress = incidents.find(i => i.id === 'inc-304')?.status !== 'resolved';
 
+  // Component to render cyber HUD indicators inside CCTV feed thumbnails
+  const RenderCCTVFeed = ({ camId, label, isAlertActive, colorVar }) => {
+    return (
+      <div className="cctv-viewport" style={{ position: 'relative', width: '90px', height: '60px', background: '#020617', borderRadius: '6px', overflow: 'hidden', flexShrink: 0, border: '1px solid rgba(255,255,255,0.05)' }}>
+        {/* Neon Indicator dot */}
+        <div className="pulse-dot" style={{ position: 'absolute', top: '6px', left: '6px', backgroundColor: isAlertActive ? `var(--color-accent-${colorVar})` : 'var(--color-accent-emerald)', width: '5px', height: '5px', zIndex: 4 }}></div>
+        
+        {/* CCTV Scrolling Scanline */}
+        {isAlertActive && <div className="cctv-scanline" style={{ background: `rgba(var(--color-accent-${colorVar}-glow), 0.5)` }}></div>}
+        
+        {/* HUD overlays */}
+        <span className="cctv-hud-text" style={{ color: isAlertActive ? `var(--color-accent-${colorVar})` : 'var(--color-accent-emerald)' }}>REC</span>
+        
+        {/* Brackets */}
+        <div className="cctv-target-brackets" style={{ opacity: isAlertActive ? 0.8 : 0.2 }}>
+          <div className="cctv-bracket cctv-bracket-topleft" style={{ borderColor: isAlertActive ? `var(--color-accent-${colorVar})` : '#555' }}></div>
+          <div className="cctv-bracket cctv-bracket-topright" style={{ borderColor: isAlertActive ? `var(--color-accent-${colorVar})` : '#555' }}></div>
+          <div className="cctv-bracket cctv-bracket-bottomleft" style={{ borderColor: isAlertActive ? `var(--color-accent-${colorVar})` : '#555' }}></div>
+          <div className="cctv-bracket cctv-bracket-bottomright" style={{ borderColor: isAlertActive ? `var(--color-accent-${colorVar})` : '#555' }}></div>
+        </div>
+
+        <span style={{ fontSize: '0.45rem', color: 'rgba(255,255,255,0.6)', position: 'absolute', bottom: '3px', right: '4px', fontFamily: 'var(--font-mono)', zIndex: 4 }}>{camId}</span>
+      </div>
+    );
+  };
+
   return (
     <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column' }}>
       <div className="panel-header">
@@ -24,11 +50,7 @@ export default function LiveCCTV() {
         
         {/* Stream 1 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(255, 255, 255, 0.02)', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-          <div style={{ position: 'relative', width: '80px', height: '50px', background: '#000', borderRadius: '4px', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div className="pulse-dot" style={{ position: 'absolute', top: '8px', left: '8px', backgroundColor: unresolvedEgress ? 'var(--color-accent-red)' : 'var(--color-accent-emerald)', width: '6px', height: '6px' }}></div>
-            <span style={{ fontSize: '0.55rem', color: '#fff', position: 'absolute', bottom: '2px', right: '4px', fontFamily: 'var(--font-mono)' }}>CAM_04_GATE2</span>
-            <div style={{ fontSize: '0.75rem', color: '#555', margin: 'auto', fontWeight: 'bold' }}>LIVE</div>
-          </div>
+          <RenderCCTVFeed camId="CAM_04_GATE2" label="LIVE" isAlertActive={unresolvedEgress} colorVar="red" />
           <div style={{ flexGrow: 1 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#fff' }}>Gate 2 Egress Ramp</span>
@@ -46,11 +68,7 @@ export default function LiveCCTV() {
 
         {/* Stream 2 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(255, 255, 255, 0.02)', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-          <div style={{ position: 'relative', width: '80px', height: '50px', background: '#000', borderRadius: '4px', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div className="pulse-dot" style={{ position: 'absolute', top: '8px', left: '8px', backgroundColor: unresolvedContam ? 'var(--color-accent-orange)' : 'var(--color-accent-emerald)', width: '6px', height: '6px' }}></div>
-            <span style={{ fontSize: '0.55rem', color: '#fff', position: 'absolute', bottom: '2px', right: '4px', fontFamily: 'var(--font-mono)' }}>CAM_12_FANZONE</span>
-            <div style={{ fontSize: '0.75rem', color: '#555', margin: 'auto', fontWeight: 'bold' }}>LIVE</div>
-          </div>
+          <RenderCCTVFeed camId="CAM_12_FANZONE" label="LIVE" isAlertActive={unresolvedContam} colorVar="orange" />
           <div style={{ flexGrow: 1 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#fff' }}>Plaza Food Court Bin #4</span>
@@ -68,11 +86,7 @@ export default function LiveCCTV() {
 
         {/* Stream 3 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(255, 255, 255, 0.02)', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-          <div style={{ position: 'relative', width: '80px', height: '50px', background: '#000', borderRadius: '4px', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div className="pulse-dot" style={{ position: 'absolute', top: '8px', left: '8px', backgroundColor: unresolvedElevator ? 'var(--color-accent-red)' : 'var(--color-accent-emerald)', width: '6px', height: '6px' }}></div>
-            <span style={{ fontSize: '0.55rem', color: '#fff', position: 'absolute', bottom: '2px', right: '4px', fontFamily: 'var(--font-mono)' }}>CAM_08_STADIUM</span>
-            <div style={{ fontSize: '0.75rem', color: '#555', margin: 'auto', fontWeight: 'bold' }}>LIVE</div>
-          </div>
+          <RenderCCTVFeed camId="CAM_08_STADIUM" label="LIVE" isAlertActive={unresolvedElevator} colorVar="red" />
           <div style={{ flexGrow: 1 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#fff' }}>Gate 6 Wheelchair Elevator</span>
