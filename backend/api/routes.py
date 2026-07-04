@@ -3,6 +3,7 @@ import json
 from fastapi import APIRouter, Form, File, UploadFile, HTTPException
 from schemas.models import ChatRequest, FeedbackRequest, EventConfig, CredentialsConfig
 from core.config import CONFIG_FILE, CREDENTIALS_FILE, get_credentials
+from core.logger import log_event
 from services.ai_service import chat_copilot, translate_and_analyze_feedback, detect_waste_gemini
 from services.rag_service import add_document_to_rag
 from services.bq_service import predict_carbon_emissions_bq, forecast_energy_demand_bq
@@ -69,11 +70,8 @@ def save_config(config: EventConfig):
     os.makedirs(os.path.dirname(CONFIG_FILE), exist_ok=True)
     with open(CONFIG_FILE, "w") as f:
         json.dump(config.model_dump(), f, indent=2)
+    log_event("INFO", "Backend", "save_config", "Event configuration persisted successfully.")
     return {"status": "success"}
-
-@router.get("/credentials")
-def handle_get_credentials():
-    return get_credentials()
 
 @router.post("/credentials")
 def handle_save_credentials(creds: CredentialsConfig):
@@ -86,6 +84,7 @@ def handle_save_credentials(creds: CredentialsConfig):
             if creds.apiMode == "ai_studio":
                 if not creds.apiKey:
                     return {"status": "error", "message": "API Key is required for Google AI Studio mode."}
+                os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "False"
                 test_client = genai.Client(api_key=creds.apiKey)
             else: # vertex_ai
                 # Override env variables to check client

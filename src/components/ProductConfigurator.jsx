@@ -76,6 +76,7 @@ export default function ProductConfigurator() {
               onChange={(e) => setBaseBudget(parseFloat(e.target.value) || 0)} 
             />
           </div>
+
         </div>
 
         {/* Map Nodes Config */}
