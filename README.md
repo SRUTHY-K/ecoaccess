@@ -260,7 +260,7 @@ Set these in the Cloud Run console or via `--set-env-vars`:
 
 ---
 ## 👥 Hackathon Team & Contributions
-* **[@SRUTHY-K](https://github.com) - Lead Developer / Core Logic (Contributed files: `list_the_files_she_made.ext`)
+* **[@SRUTHY-K](https://github.com)** - Lead Developer / Core Logic
 * **[@lawthermegan](https://github.com)** - Developer / UI /UX and backend API configuration
 * **[@OmkarTanajiPatil](https://github.com)** - Developer / Integration, logging
 ## License
