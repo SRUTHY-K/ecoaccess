@@ -259,7 +259,12 @@ Set these in the Cloud Run console or via `--set-env-vars`:
 > On Cloud Run, Application Default Credentials are provided automatically via the attached service account — no `gcloud auth` command needed. Ensure the service account has the **BigQuery Data Editor**, **Vertex AI User**, and optionally **Cloud AlloyDB Client** IAM roles.
 
 ---
-
+## 👥 Hackathon Team & Contributions
+* **[@SRUTHY-K](https://github.com) - Lead Developer / Core Logic (Contributed files: `list_the_files_she_made.ext`)
+* **[@lawthermegan](https://github.com)** - Developer / UI /UX and backend API configuration
+* **[@OmkarTanajiPatil](https://github.com)** - Developer / Integration, logging
 ## License
 
 MIT
+
+
