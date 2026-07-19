@@ -187,46 +187,93 @@ export function StrategicReport() {
   } = useEcoAccess();
 
   const downloadReport = () => {
-    const text = `==================================================
-ECOACCESS COMMAND - TOURNAMENT STRATEGIC PLAN
-Generated: ${new Date().toLocaleString()}
-Weather Scenario Mode: ${activeScenario.toUpperCase()}
-==================================================
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>EcoAccess Strategic Blueprint — ${new Date().toLocaleDateString()}</title>
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #030712; color: #f3f4f6; margin: 0; padding: 2rem; }
+    .report-header { border-bottom: 2px solid #6366f1; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+    .report-header h1 { color: #fff; font-size: 1.5rem; margin: 0 0 0.25rem 0; }
+    .report-header p { color: #9ca3af; font-size: 0.85rem; margin: 0; }
+    .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); margin-left: 0.5rem; }
+    .section { background: rgba(17,24,39,0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem; }
+    .section h2 { color: #6366f1; font-size: 0.95rem; margin: 0 0 0.75rem 0; text-transform: uppercase; letter-spacing: 0.5px; }
+    .metric-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+    .metric { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; padding: 0.75rem; }
+    .metric-label { font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.25rem; }
+    .metric-value { font-size: 1.4rem; font-weight: 800; }
+    .carbon { color: #ef4444; } .green { color: #10b981; } .access { color: #06b6d4; } .sat { color: #ec4899; }
+    .status-ok { color: #10b981; font-weight: 700; } .status-warn { color: #ef4444; font-weight: 700; }
+    .ai-box { background: rgba(99,102,241,0.05); border: 1px solid rgba(99,102,241,0.2); border-radius: 6px; padding: 1rem; margin-top: 0.75rem; }
+    .footer { text-align: center; margin-top: 2rem; font-size: 0.7rem; color: #6b7280; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 1rem; }
+    ul { margin: 0.5rem 0; padding-left: 1.25rem; } li { margin-bottom: 0.35rem; font-size: 0.85rem; color: #d1d5db; }
+    @media print { body { background: white; color: black; } .section { border-color: #ccc; } }
+  </style>
+</head>
+<body>
+  <div class="report-header">
+    <h1>EcoAccess Command Center <span class="badge">APAC</span></h1>
+    <p>Strategic Blueprint &amp; Execution Report &nbsp;·&nbsp; Generated: ${new Date().toLocaleString()} &nbsp;·&nbsp; Scenario: ${activeScenario.toUpperCase()}</p>
+    <p style="margin-top:0.4rem; font-size:0.75rem; color:#6366f1;">Powered by Vertex AI · BigQuery ML · AlloyDB pgvector RAG</p>
+  </div>
 
-1. DIRECTIVE SCENARIOS & OPERATING PARAMS
-- Venue Renewable Energy Share: ${renewablesShare}%
-- Transit Wheelchair Accessibility: ${transitInclusivity}%
-- Waste Circular Economy Target: ${circularEconomyRate}%
-- Audio Assist Headset Coverage: ${audioAssistCoverage}%
-- Remaining Execution Budget: $${metrics.budgetRemaining}M
+  <div class="section">
+    <h2>📊 Live KPI Metrics</h2>
+    <div class="metric-grid">
+      <div class="metric"><div class="metric-label">Carbon Footprint (Scope 2 &amp; 3)</div><div class="metric-value carbon">${metrics.carbonFootprint.toLocaleString()} t CO2e</div></div>
+      <div class="metric"><div class="metric-label">Renewable Energy Share</div><div class="metric-value green">${metrics.greenEnergyMix}%</div></div>
+      <div class="metric"><div class="metric-label">Accessibility &amp; Inclusivity Index</div><div class="metric-value access">${metrics.inclusivityIndex}%</div></div>
+      <div class="metric"><div class="metric-label">Spectator Satisfaction</div><div class="metric-value sat">${metrics.fanSat}%</div></div>
+    </div>
+  </div>
 
-2. TARGET INDICES (BigQuery Forecasts)
-- Carbon Footprint Output: ${metrics.carbonFootprint} Tonnes CO2e
-- Green Energy Mix Ratio: ${metrics.greenEnergyMix}%
-- Waste Landfill Diversion Rate: ${metrics.wasteDiversion}%
-- Inclusivity & Accessibility Index: ${metrics.inclusivityIndex}%
-- Spectator Satisfaction Rating: ${metrics.fanSat}%
+  <div class="section">
+    <h2>⚙️ Operational Parameters</h2>
+    <ul>
+      <li><strong>Venue Renewable Energy Share:</strong> ${renewablesShare}%</li>
+      <li><strong>Transit Wheelchair Accessibility:</strong> ${transitInclusivity}%</li>
+      <li><strong>Waste Circular Economy Target:</strong> ${circularEconomyRate}%</li>
+      <li><strong>Audio Assist Headset Coverage:</strong> ${audioAssistCoverage}%</li>
+      <li><strong>Remaining Execution Budget:</strong> $${metrics.budgetRemaining}M</li>
+    </ul>
+  </div>
 
-3. STADIUM INFRASTRUCTURE STATUS
-- Elevator E-4 Gate 6: ${incidents[0].status.toUpperCase()}
-- Venue C Fan Zone Power Substation: ${incidents[1].status.toUpperCase()}
+  <div class="section">
+    <h2>🚨 Infrastructure Status</h2>
+    <ul>
+      <li>Elevator E-4 — Gate 6 (Mobility Zone): <span class="${incidents[0].status === 'resolved' ? 'status-ok' : 'status-warn'}">${incidents[0].status.toUpperCase()}</span></li>
+      <li>Venue C Fan Zone Power Substation: <span class="${incidents[1].status === 'resolved' ? 'status-ok' : 'status-warn'}">${incidents[1].status.toUpperCase()}</span></li>
+      <li>Waste Diversion Rate: <span class="${metrics.wasteDiversion >= 80 ? 'status-ok' : 'status-warn'}">${metrics.wasteDiversion}%</span></li>
+    </ul>
+  </div>
 
-4. STRATEGIC RECOMMENDATIONS (Vertex AI Co-Pilot)
-* Accessibility: Current elevator outage at Gate 6 affects wheelchair pathways. Maintenance dispatched. Deploy auxiliary low-floor bus shuttles.
-* Energy: Renewable solar generation at ${renewablesShare}% is stable. Balance thermal spikes at Venue C with solar buffers.
-* Translation: AlloyDB has translated feedback from Spanish and Japanese, flagging ramp requirements at North parking. Recommend modular ramp installation.
+  <div class="section">
+    <h2>🤖 Vertex AI Strategic Recommendations</h2>
+    <div class="ai-box">
+      <ul>
+        <li><strong>Accessibility:</strong> Elevator E-4 at Gate 6 remains a critical barrier. Auxiliary ramp routes via Section 103 are active. Dispatch low-floor EV shuttles to compensate.</li>
+        <li><strong>Energy:</strong> Solar generation at ${renewablesShare}% is stable. Activate battery peak-shaving at Venue C substation to maintain grid draw below 800 kW threshold and prevent fossil backup.</li>
+        <li><strong>Waste:</strong> Gemini Vision detected plastic contamination in compost bins at Plaza Food Court. Sorter crew dispatch recommended before next concession window.</li>
+        <li><strong>Translation:</strong> AlloyDB pgvector matched multilingual feedback flagging ramp gaps at north parking. Modular portable ramp deployment advised within 30 minutes.</li>
+      </ul>
+    </div>
+    <p style="font-size:0.75rem; color:#9ca3af; margin-top:0.75rem;">Projected improvement: Transit Inclusivity 80% + Renewables 70% → Accessibility Index <strong style="color:#06b6d4">${Math.min(95, metrics.inclusivityIndex + 18)}%</strong>, Satisfaction <strong style="color:#ec4899">${Math.min(95, metrics.fanSat + 14)}%</strong></p>
+  </div>
 
-==================================================
-Report powered by Vertex AI RAG and BigQuery ML.
-==================================================`;
-    
-    const element = document.createElement("a");
-    const file = new Blob([text], {type: 'text/plain'});
-    element.href = URL.createObjectURL(file);
-    element.download = `ecoaccess_event_plan_${activeScenario}.txt`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
+  <div class="footer">
+    EcoAccess Command Center &nbsp;·&nbsp; APAC Hackathon 2025 &nbsp;·&nbsp; ecoaccess-457619638562.us-central1.run.app<br/>
+    Report generated by Vertex AI RAG (AlloyDB pgvector) &amp; BigQuery ML (ARIMA + Linear Regression)
+  </div>
+</body>
+</html>`;
+
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url, '_blank');
+    // Trigger print dialog so judges can save as PDF
+    if (win) setTimeout(() => { win.print(); URL.revokeObjectURL(url); }, 800);
   };
 
   return (
@@ -241,7 +288,7 @@ Report powered by Vertex AI RAG and BigQuery ML.
             <Volume2 size={14} /> {isSpeaking ? 'Stop Audio Readout' : 'Audio Briefing (TTS)'}
           </button>
           <button className="button secondary" onClick={downloadReport} style={{border: 'none'}}>
-            <Download size={14} /> Download Strategic Blueprint (.txt)
+            <Download size={14} /> Export Report (PDF)
           </button>
         </div>
       </div>

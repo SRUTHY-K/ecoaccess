@@ -101,15 +101,38 @@ export default function Sidebar() {
         <div className="architecture-badge">
           <span className="architecture-badge-title">EcoAccess Stack</span>
           <span className="architecture-badge-item">
-            <Cpu size={10} style={{color: 'var(--color-accent-emerald)'}} /> Gemini translation
+            <Cpu size={10} style={{color: 'var(--color-accent-pink)'}} /> Gemini 2.5 Flash Vision
           </span>
           <span className="architecture-badge-item">
-            <Activity size={10} style={{color: 'var(--color-accent-cyan)'}} /> BigQuery Carbon ML
+            <Activity size={10} style={{color: 'var(--color-accent-orange)'}} /> BigQuery ML ARIMA + LR
           </span>
           <span className="architecture-badge-item">
-            <Building size={10} style={{color: 'var(--color-accent-indigo)'}} /> AlloyDB RAG index
+            <Building size={10} style={{color: 'var(--color-accent-indigo)'}} /> AlloyDB pgvector RAG
+          </span>
+          <span className="architecture-badge-item">
+            <Zap size={10} style={{color: 'var(--color-accent-emerald)'}} /> Cloud Run · Vertex AI
           </span>
         </div>
+        <a
+          href="https://ecoaccess-457619638562.us-central1.run.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'block',
+            marginTop: '0.6rem',
+            fontSize: '0.65rem',
+            color: 'var(--color-accent-indigo)',
+            textDecoration: 'none',
+            textAlign: 'center',
+            padding: '0.3rem',
+            border: '1px solid rgba(99,102,241,0.2)',
+            borderRadius: '4px',
+            background: 'rgba(99,102,241,0.05)',
+            transition: 'background 0.2s'
+          }}
+        >
+          🌐 Live Demo
+        </a>
       </div>
     </aside>
   );
