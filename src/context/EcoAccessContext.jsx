@@ -51,11 +51,11 @@ export const EcoAccessProvider = ({ children }) => {
     },
     {
       id: 'inc-302',
-      title: 'Grid Overload (Scope 2 Concessions)',
-      sector: 'Venue C: Mega Fan Zone',
-      location: 'Plaza Grid B2, Power Substation',
-      severity: 'medium',
-      time: '14 mins ago',
+      title: 'Grid Power Overload (Substation C)',
+      sector: 'IPL Fan Village — Pavilion End',
+      location: 'Main Power Substation, Concessions Wing',
+      severity: 'high',
+      time: '12 mins ago',
       status: 'unresolved',
       description: 'Scope 2 carbon draw spiked to 880 kW due to screen displays. Risk of fossil-fuel backup startup.',
       dispatcherLog: ''
@@ -63,7 +63,7 @@ export const EcoAccessProvider = ({ children }) => {
     {
       id: 'inc-303',
       title: 'Recycling Contamination (CCTV-12)',
-      sector: 'Venue C: Mega Fan Zone',
+      sector: 'IPL Fan Village — Pavilion End',
       location: 'Plaza Food Court, Bin #4',
       severity: 'medium',
       time: '18 mins ago',
@@ -74,7 +74,7 @@ export const EcoAccessProvider = ({ children }) => {
     {
       id: 'inc-304',
       title: 'Wheelchair Ramp Egress Block (CCTV-04)',
-      sector: 'Venue A: Stadium Arena (Main Gate)',
+      sector: 'Narendra Modi Stadium — Main Bowl',
       location: 'Gate 2 Entrance Pathway',
       severity: 'high',
       time: '24 mins ago',
@@ -106,7 +106,7 @@ export const EcoAccessProvider = ({ children }) => {
   const [chatMessages, setChatMessages] = useState([
     {
       sender: 'ai',
-      text: "Hello! I am Gemini, your EcoAccess Global Event Co-pilot. I analyze on-site energy, waste streams, and accessibility infrastructure. I translate multilingual fan feedback (Spanish, Japanese, German) and suggest automated dispatches for mobility barriers or carbon spikes. How can I assist you in hosting a sustainable and inclusive event?",
+      text: "🏏 Namaste! I am Gemini, your EcoAccess AI Decision Co-pilot — deployed at the Narendra Modi Stadium for this live IPL match (75,000 spectators). I monitor real-time energy telemetry, waste contamination, and accessibility barriers across all 4 venue zones. I can translate multilingual fan feedback (Spanish, Japanese, German, Hindi), cite APAC compliance codes, and recommend dispatches for carbon spikes or mobility emergencies. How can I assist you right now?",
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       citations: []
     }
@@ -138,6 +138,13 @@ export const EcoAccessProvider = ({ children }) => {
   const [gcpLocation, setGcpLocation] = useState('us-central1');
   const [credsStatus, setCredsStatus] = useState(null);
   const [isVerifyingCreds, setIsVerifyingCreds] = useState(false);
+
+  // In-app toast notification (replaces browser alert())
+  const [toastMessage, setToastMessage] = useState(null); // { text, type: 'success'|'error'|'warning' }
+  const showToast = (text, type = 'success') => {
+    setToastMessage({ text, type });
+    setTimeout(() => setToastMessage(null), 4000);
+  };
 
   // Load configuration & credentials on startup
   // Client Action Logger
@@ -401,7 +408,7 @@ export const EcoAccessProvider = ({ children }) => {
             return inc;
           }));
           logClientAction('cctv_image_upload_contamination', `Gemini Vision audit returned contamination: ${data.contaminationDetail} (Fill level: ${data.fillLevel}%)`, 'WARNING');
-          alert(`AI Vision Alert: Recycling contamination detected! Details: ${data.contaminationDetail}`);
+          showToast(`⚠️ Contamination detected: ${data.contaminationDetail} (Fill: ${data.fillLevel}%)`, 'warning');
         } else {
           setIncidents(prev => prev.map(inc => {
             if (inc.id === 'inc-303') {
@@ -415,14 +422,14 @@ export const EcoAccessProvider = ({ children }) => {
             return inc;
           }));
           logClientAction('cctv_image_upload_clean', `Gemini Vision audit returned clean bin (Fill level: ${data.fillLevel}%)`);
-          alert(`AI Vision Result: No contamination detected. Bin is at ${data.fillLevel}% capacity.`);
+          showToast(`✅ Bin clean — No contamination. Fill level: ${data.fillLevel}%`, 'success');
         }
         setDemoStep(4);
       })
       .catch(err => {
         setIsVisionAnalyzing(false);
         logClientAction('cctv_image_upload_failed', 'Gemini Vision waste bin image audit call failed.', 'ERROR', err);
-        alert("Error calling Gemini Vision API. Backend might be offline.");
+        showToast('❌ Error calling Gemini Vision API. Backend may be offline.', 'error');
       });
   };
 
@@ -1022,7 +1029,9 @@ export const EcoAccessProvider = ({ children }) => {
       gcpLocation, setGcpLocation,
       credsStatus, setCredsStatus,
       isVerifyingCreds, setIsVerifyingCreds,
-      saveAndVerifyCredentials
+      saveAndVerifyCredentials,
+      toastMessage,
+      showToast
     }}>
       {children}
     </EcoAccessContext.Provider>

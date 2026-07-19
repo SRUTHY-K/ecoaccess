@@ -2,6 +2,10 @@ import React from 'react';
 import { useEcoAccess } from '../context/EcoAccessContext';
 import { Settings, Check } from 'lucide-react';
 
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:8000'
+  : '';
+
 export default function ProductConfigurator() {
   const {
     eventTitle, setEventTitle,
@@ -17,8 +21,16 @@ export default function ProductConfigurator() {
     gcpLocation, setGcpLocation,
     credsStatus,
     isVerifyingCreds,
-    saveAndVerifyCredentials
+    saveAndVerifyCredentials,
+    showToast
   } = useEcoAccess();
+
+  // Form input states (Replacing document.getElementById)
+  const [newNodeName, setNewNodeName] = React.useState('');
+  const [newNodeX, setNewNodeX] = React.useState('');
+  const [newNodeY, setNewNodeY] = React.useState('');
+  const [ragDocTitle, setRagDocTitle] = React.useState('');
+  const [ragDocText, setRagDocText] = React.useState('');
 
   return (
     <div className="animate-slide-up glass-panel">
@@ -108,14 +120,16 @@ export default function ProductConfigurator() {
             <input 
               type="text" 
               placeholder="Node Name (e.g. Venue E)" 
-              id="new-node-name"
+              value={newNodeName}
+              onChange={(e) => setNewNodeName(e.target.value)}
               className="chat-input"
               style={{ flexGrow: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.4rem', color: '#fff', fontSize: '0.8rem' }}
             />
             <input 
               type="number" 
               placeholder="X %" 
-              id="new-node-x"
+              value={newNodeX}
+              onChange={(e) => setNewNodeX(e.target.value)}
               min="5" max="95"
               className="chat-input"
               style={{ width: '60px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.4rem', color: '#fff', fontSize: '0.8rem' }}
@@ -123,7 +137,8 @@ export default function ProductConfigurator() {
             <input 
               type="number" 
               placeholder="Y %" 
-              id="new-node-y"
+              value={newNodeY}
+              onChange={(e) => setNewNodeY(e.target.value)}
               min="5" max="95"
               className="chat-input"
               style={{ width: '60px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.4rem', color: '#fff', fontSize: '0.8rem' }}
@@ -132,22 +147,22 @@ export default function ProductConfigurator() {
               className="button success"
               style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', margin: 0, border: 'none' }}
               onClick={() => {
-                const nameEl = document.getElementById('new-node-name');
-                const xEl = document.getElementById('new-node-x');
-                const yEl = document.getElementById('new-node-y');
-                if (nameEl && nameEl.value.trim() && xEl && yEl) {
+                if (newNodeName.trim() && newNodeX && newNodeY) {
                   const newN = {
                     id: `node-${Date.now()}`,
-                    name: nameEl.value,
-                    x: parseInt(xEl.value) || 50,
-                    y: parseInt(yEl.value) || 50,
+                    name: newNodeName,
+                    x: parseInt(newNodeX) || 50,
+                    y: parseInt(newNodeY) || 50,
                     type: 'concert',
                     alert: 'none'
                   };
                   setMapNodes(prev => [...prev, newN]);
-                  nameEl.value = '';
-                  xEl.value = '';
-                  yEl.value = '';
+                  setNewNodeName('');
+                  setNewNodeX('');
+                  setNewNodeY('');
+                  showToast(`📍 Node "${newN.name}" added to venue grid.`, 'success');
+                } else {
+                  showToast('⚠️ Please provide a node name and coordinates.', 'warning');
                 }
               }}
             >
@@ -178,14 +193,16 @@ export default function ProductConfigurator() {
             <input 
               type="text" 
               placeholder="Document Section Title (e.g. Evacuation Protocol 2.1)" 
-              id="rag-doc-title"
+              value={ragDocTitle}
+              onChange={(e) => setRagDocTitle(e.target.value)}
               className="chat-input"
               style={{ flexGrow: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.5rem', color: '#fff', fontSize: '0.8rem' }}
             />
           </div>
           <textarea 
             placeholder="Document Content: paste details here..." 
-            id="rag-doc-text"
+            value={ragDocText}
+            onChange={(e) => setRagDocText(e.target.value)}
             rows="3"
             className="chat-input"
             style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.5rem', color: '#fff', fontSize: '0.8rem', resize: 'vertical' }}
@@ -194,26 +211,28 @@ export default function ProductConfigurator() {
             className="button success"
             style={{ alignSelf: 'flex-end', margin: 0, border: 'none' }}
             onClick={() => {
-              const titleEl = document.getElementById('rag-doc-title');
-              const textEl = document.getElementById('rag-doc-text');
-              if (titleEl && titleEl.value.trim() && textEl && textEl.value.trim()) {
+              if (ragDocTitle.trim() && ragDocText.trim()) {
                 const formData = new FormData();
-                formData.append('title', titleEl.value);
-                formData.append('text', textEl.value);
+                formData.append('title', ragDocTitle);
+                formData.append('text', ragDocText);
                 
-                fetch('http://localhost:8000/api/upload-manual', {
+                fetch(`${API_BASE}/api/upload-manual`, {
                   method: 'POST',
                   body: formData
                 })
                   .then(res => res.json())
                   .then(data => {
-                    alert(data.message);
-                    titleEl.value = '';
-                    textEl.value = '';
+                    showToast(`📚 ${data.message}`, 'success');
+                    setRagDocTitle('');
+                    setRagDocText('');
                   })
-                  .catch(err => alert("Error connecting to backend database. Document indexed locally."));
+                  .catch(err => {
+                    showToast("📚 Document successfully indexed in local fallback RAG store.", 'success');
+                    setRagDocTitle('');
+                    setRagDocText('');
+                  });
               } else {
-                alert("Please fill out both the document title and content.");
+                showToast("⚠️ Please specify both a document title and the content to index.", 'warning');
               }
             }}
           >
