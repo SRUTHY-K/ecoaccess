@@ -1,5 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:8000'
+  : '';
+
 const EcoAccessContext = createContext();
 
 export const EcoAccessProvider = ({ children }) => {
@@ -8,7 +12,7 @@ export const EcoAccessProvider = ({ children }) => {
 
   // Dynamic Product Settings
   const [eventTitle, setEventTitle] = useState('EcoAccess Command Center');
-  const [eventSubtitle, setEventSubtitle] = useState('Smart Venue Telemetry, Sustainable Operations & Inclusive Decision Hub');
+  const [eventSubtitle, setEventSubtitle] = useState('AI-Powered Decision Intelligence · Zero-Emission APAC Events · Real-Time Accessibility Operations');
   const [baseBudget, setBaseBudget] = useState(30.0);
 
   // Custom Dynamic Venue GIS Nodes
@@ -150,7 +154,7 @@ export const EcoAccessProvider = ({ children }) => {
 
   // Load configuration on startup
   useEffect(() => {
-    fetch('http://localhost:8000/api/config')
+    fetch(`${API_BASE}/api/config`)
       .then(res => res.json())
       .then(data => {
         if (data.eventTitle) {
@@ -163,7 +167,7 @@ export const EcoAccessProvider = ({ children }) => {
       })
       .catch(err => console.log("Using local mock configurations (Backend offline)."));
 
-    fetch('http://localhost:8000/api/credentials')
+    fetch(`${API_BASE}/api/credentials`)
       .then(res => res.json())
       .then(data => {
         if (data.apiMode) {
@@ -181,7 +185,7 @@ export const EcoAccessProvider = ({ children }) => {
   const saveAndVerifyCredentials = (mode, key, projectId, location) => {
     setIsVerifyingCreds(true);
     setCredsStatus(null);
-    return fetch('http://localhost:8000/api/credentials', {
+    return fetch(`${API_BASE}/api/credentials`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -234,7 +238,7 @@ export const EcoAccessProvider = ({ children }) => {
 
   // Update carbon footprint from BigQuery ML when parameters change
   useEffect(() => {
-    fetch(`http://localhost:8000/api/predictions/carbon?renewables=${renewablesShare}&transit=${transitInclusivity}&recycling=${circularEconomyRate}&attendance=${spectatorCount}`)
+    fetch(`${API_BASE}/api/predictions/carbon?renewables=${renewablesShare}&transit=${transitInclusivity}&recycling=${circularEconomyRate}&attendance=${spectatorCount}`)
       .then(res => res.json())
       .then(data => {
         if (data.carbonFootprint !== undefined) {
@@ -250,7 +254,7 @@ export const EcoAccessProvider = ({ children }) => {
 
   // Load energy forecast
   const loadEnergyForecast = () => {
-    fetch('http://localhost:8000/api/predictions/energy')
+    fetch(`${API_BASE}/api/predictions/energy`)
       .then(res => res.json())
       .then(data => {
         if (data.forecast) {
@@ -274,7 +278,7 @@ export const EcoAccessProvider = ({ children }) => {
 
   // Persist configuration
   const persistConfig = (title, subtitle, budget, nodes) => {
-    fetch('http://localhost:8000/api/config', {
+    fetch(`${API_BASE}/api/config`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -377,7 +381,7 @@ export const EcoAccessProvider = ({ children }) => {
     const formData = new FormData();
     formData.append("file", file);
 
-    fetch("http://localhost:8000/api/detect-waste", {
+    fetch(`${API_BASE}/api/detect-waste`, {
       method: "POST",
       body: formData
     })
@@ -436,7 +440,7 @@ export const EcoAccessProvider = ({ children }) => {
     logClientAction('demo_copilot_brief_start', 'Demo Step 4: Requesting tactical operational brief from Gemini Copilot.');
     const eventContext = `Event: ${eventTitle}, Spectators: ${spectatorCount}, Renewables: ${renewablesShare}%, Accessibility: ${transitInclusivity}%, Audio Assist: ${audioAssistCoverage}%, Incidents: Elevator E-4 offline, Venue C grid spike, bin contamination.`;
  
-    fetch('http://localhost:8000/api/chat', {
+    fetch(`${API_BASE}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -485,7 +489,7 @@ export const EcoAccessProvider = ({ children }) => {
 
     setIsTyping(true);
     logClientAction('demo_rag_query_start', 'Demo Step 5: Querying compliance standards from AlloyDB pgvector store.');
-    fetch('http://localhost:8000/api/chat', {
+    fetch(`${API_BASE}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -706,7 +710,7 @@ export const EcoAccessProvider = ({ children }) => {
 
     const eventContext = `Event: ${eventTitle}, Budget: $${baseBudget}M, Renewables: ${renewablesShare}%, Accessibility: ${transitInclusivity}%, Audio Assist: ${audioAssistCoverage}%`;
 
-    fetch('http://localhost:8000/api/chat', {
+    fetch(`${API_BASE}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: queryInput, context: eventContext })
@@ -807,7 +811,7 @@ export const EcoAccessProvider = ({ children }) => {
   // Real-time Spanish/Japanese translation call
   const translateFeedback = (id, text) => {
     logClientAction('translate_feedback_start', `Requested translation and sentiment audit for feedback ID: ${id}`);
-    fetch('http://localhost:8000/api/translate', {
+    fetch(`${API_BASE}/api/translate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text })
