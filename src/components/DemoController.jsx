@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useEcoAccess } from '../context/EcoAccessContext';
 import { Cpu, Check } from 'lucide-react';
 
@@ -17,6 +17,20 @@ export default function DemoController() {
     resetDemoWorkflow
   } = useEcoAccess();
 
+  // Typewriter effect for Gemini brief
+  const [displayedBrief, setDisplayedBrief] = useState('');
+  useEffect(() => {
+    if (!geminiBrief) { setDisplayedBrief(''); return; }
+    setDisplayedBrief('');
+    let i = 0;
+    const interval = setInterval(() => {
+      setDisplayedBrief(geminiBrief.slice(0, i));
+      i++;
+      if (i > geminiBrief.length) clearInterval(interval);
+    }, 12);
+    return () => clearInterval(interval);
+  }, [geminiBrief]);
+
   return (
     <div className="glass-panel" style={{display: 'flex', flexDirection: 'column'}}>
       <div className="panel-header">
@@ -24,6 +38,25 @@ export default function DemoController() {
           <Cpu size={18} style={{color: 'var(--color-accent-indigo)'}} />
           Decision Intelligence Demo Workflow
         </h2>
+      </div>
+
+      {/* Demo Progress Bar */}
+      <div style={{ marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--color-text-secondary)', marginBottom: '0.3rem' }}>
+          <span>Demo Progress</span>
+          <span style={{ color: 'var(--color-accent-indigo)', fontWeight: '700' }}>
+            {demoStep === 7 ? '✓ Complete' : `Step ${demoStep} of 6`}
+          </span>
+        </div>
+        <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px', overflow: 'hidden' }}>
+          <div style={{
+            height: '100%',
+            width: `${Math.min(((demoStep - 1) / 6) * 100, 100)}%`,
+            background: 'linear-gradient(90deg, var(--color-accent-indigo), var(--color-accent-cyan))',
+            borderRadius: '2px',
+            transition: 'width 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
+          }} />
+        </div>
       </div>
       
       <p className="report-p" style={{marginBottom: '1rem'}}>
@@ -33,7 +66,7 @@ export default function DemoController() {
       <div className="demo-steps-timeline" style={{display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem', overflowY: 'auto', maxHeight: '380px'}}>
         
         {/* STEP 1 */}
-        <div className={`demo-step-card ${demoStep === 1 ? 'active' : ''}`} style={{borderLeft: demoStep === 1 ? '3px solid var(--color-accent-cyan)' : '2px solid var(--border-color)', padding: '0.5rem 0.75rem', background: demoStep === 1 ? 'rgba(6, 182, 212, 0.05)' : 'rgba(255,255,255,0.01)', borderRadius: '4px'}}>
+        <div className={`demo-step-card ${demoStep === 1 ? 'active' : ''}`} style={{borderLeft: demoStep === 1 ? '3px solid var(--color-accent-cyan)' : '2px solid var(--border-color)', padding: '0.5rem 0.75rem', background: demoStep === 1 ? 'rgba(6, 182, 212, 0.05)' : 'rgba(255,255,255,0.01)', borderRadius: '4px', transition: 'all 0.2s ease'}}>
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
             <span style={{fontSize: '0.8rem', fontWeight: 'bold', color: demoStep === 1 ? '#fff' : 'var(--color-text-secondary)'}}>Step 1: Event Telemetry Spikes</span>
             {demoStep > 1 && <Check size={14} style={{color: 'var(--color-accent-emerald)'}} />}
@@ -49,7 +82,7 @@ export default function DemoController() {
         </div>
 
         {/* STEP 2 */}
-        <div className={`demo-step-card ${demoStep === 2 ? 'active' : ''}`} style={{borderLeft: demoStep === 2 ? '3px solid var(--color-accent-orange)' : '2px solid var(--border-color)', padding: '0.5rem 0.75rem', background: demoStep === 2 ? 'rgba(249, 115, 22, 0.05)' : 'rgba(255,255,255,0.01)', borderRadius: '4px'}}>
+        <div className={`demo-step-card ${demoStep === 2 ? 'active' : ''}`} style={{borderLeft: demoStep === 2 ? '3px solid var(--color-accent-orange)' : '2px solid var(--border-color)', padding: '0.5rem 0.75rem', background: demoStep === 2 ? 'rgba(249, 115, 22, 0.05)' : 'rgba(255,255,255,0.01)', borderRadius: '4px', transition: 'all 0.2s ease'}}>
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
             <span style={{fontSize: '0.8rem', fontWeight: 'bold', color: demoStep === 2 ? '#fff' : 'var(--color-text-secondary)'}}>Step 2: BigQuery ML Forecast</span>
             {demoStep > 2 && <Check size={14} style={{color: 'var(--color-accent-emerald)'}} />}
@@ -65,7 +98,7 @@ export default function DemoController() {
         </div>
 
         {/* STEP 3 */}
-        <div className={`demo-step-card ${demoStep === 3 ? 'active' : ''}`} style={{borderLeft: demoStep === 3 ? '3px solid var(--color-accent-indigo)' : '2px solid var(--border-color)', padding: '0.5rem 0.75rem', background: demoStep === 3 ? 'rgba(99, 102, 241, 0.05)' : 'rgba(255,255,255,0.01)', borderRadius: '4px'}}>
+        <div className={`demo-step-card ${demoStep === 3 ? 'active' : ''}`} style={{borderLeft: demoStep === 3 ? '3px solid var(--color-accent-indigo)' : '2px solid var(--border-color)', padding: '0.5rem 0.75rem', background: demoStep === 3 ? 'rgba(99, 102, 241, 0.05)' : 'rgba(255,255,255,0.01)', borderRadius: '4px', transition: 'all 0.2s ease'}}>
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
             <span style={{fontSize: '0.8rem', fontWeight: 'bold', color: demoStep === 3 ? '#fff' : 'var(--color-text-secondary)'}}>Step 3: Vision AI Waste Audit</span>
             {demoStep > 3 && <Check size={14} style={{color: 'var(--color-accent-emerald)'}} />}
@@ -93,7 +126,7 @@ export default function DemoController() {
         </div>
 
         {/* STEP 4 */}
-        <div className={`demo-step-card ${demoStep === 4 ? 'active' : ''}`} style={{borderLeft: demoStep === 4 ? '3px solid var(--color-accent-pink)' : '2px solid var(--border-color)', padding: '0.5rem 0.75rem', background: demoStep === 4 ? 'rgba(236, 72, 153, 0.05)' : 'rgba(255,255,255,0.01)', borderRadius: '4px'}}>
+        <div className={`demo-step-card ${demoStep === 4 ? 'active' : ''}`} style={{borderLeft: demoStep === 4 ? '3px solid var(--color-accent-pink)' : '2px solid var(--border-color)', padding: '0.5rem 0.75rem', background: demoStep === 4 ? 'rgba(236, 72, 153, 0.05)' : 'rgba(255,255,255,0.01)', borderRadius: '4px', transition: 'all 0.2s ease'}}>
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
             <span style={{fontSize: '0.8rem', fontWeight: 'bold', color: demoStep === 4 ? '#fff' : 'var(--color-text-secondary)'}}>Step 4: AI Decision Copilot</span>
             {demoStep > 4 && <Check size={14} style={{color: 'var(--color-accent-emerald)'}} />}
@@ -108,13 +141,13 @@ export default function DemoController() {
           )}
           {geminiBrief && (
             <div style={{background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', borderRadius: '4px', padding: '0.5rem', marginTop: '0.5rem', fontSize: '0.7rem', color: 'var(--color-text-secondary)', whiteSpace: 'pre-line', maxHeight: '150px', overflowY: 'auto'}}>
-              {geminiBrief}
+              {displayedBrief}
             </div>
           )}
         </div>
 
         {/* STEP 5 */}
-        <div className={`demo-step-card ${demoStep === 5 ? 'active' : ''}`} style={{borderLeft: demoStep === 5 ? '3px solid var(--color-accent-emerald)' : '2px solid var(--border-color)', padding: '0.5rem 0.75rem', background: demoStep === 5 ? 'rgba(16, 185, 129, 0.05)' : 'rgba(255,255,255,0.01)', borderRadius: '4px'}}>
+        <div className={`demo-step-card ${demoStep === 5 ? 'active' : ''}`} style={{borderLeft: demoStep === 5 ? '3px solid var(--color-accent-emerald)' : '2px solid var(--border-color)', padding: '0.5rem 0.75rem', background: demoStep === 5 ? 'rgba(16, 185, 129, 0.05)' : 'rgba(255,255,255,0.01)', borderRadius: '4px', transition: 'all 0.2s ease'}}>
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
             <span style={{fontSize: '0.8rem', fontWeight: 'bold', color: demoStep === 5 ? '#fff' : 'var(--color-text-secondary)'}}>Step 5: RAG Guideline Retrieval</span>
             {demoStep > 5 && <Check size={14} style={{color: 'var(--color-accent-emerald)'}} />}
@@ -130,7 +163,7 @@ export default function DemoController() {
         </div>
 
         {/* STEP 6 */}
-        <div className={`demo-step-card ${demoStep === 6 ? 'active' : ''}`} style={{borderLeft: demoStep === 6 ? '3px solid var(--color-accent-red)' : '2px solid var(--border-color)', padding: '0.5rem 0.75rem', background: demoStep === 6 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(255,255,255,0.01)', borderRadius: '4px'}}>
+        <div className={`demo-step-card ${demoStep === 6 ? 'active' : ''}`} style={{borderLeft: demoStep === 6 ? '3px solid var(--color-accent-red)' : '2px solid var(--border-color)', padding: '0.5rem 0.75rem', background: demoStep === 6 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(255,255,255,0.01)', borderRadius: '4px', transition: 'all 0.2s ease'}}>
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
             <span style={{fontSize: '0.8rem', fontWeight: 'bold', color: demoStep === 6 ? '#fff' : 'var(--color-text-secondary)'}}>Step 6: Execute Mitigations</span>
             {demoStep > 6 && <Check size={14} style={{color: 'var(--color-accent-emerald)'}} />}
