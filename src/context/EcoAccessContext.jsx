@@ -13,10 +13,10 @@ export const EcoAccessProvider = ({ children }) => {
 
   // Custom Dynamic Venue GIS Nodes
   const [mapNodes, setMapNodes] = useState([
-    { id: 'node-1', name: 'Venue A: Stadium Arena', x: 50, y: 50, type: 'stadium', alert: 'elevator' },
-    { id: 'node-2', name: 'Venue C: Mega Fan Zone', x: 80, y: 35, type: 'fanzone', alert: 'grid' },
-    { id: 'node-3', name: "Venue B: Athletes' Village", x: 30, y: 25, type: 'village', alert: 'none' },
-    { id: 'node-4', name: 'Venue D: Accessible Transport Hub', x: 75, y: 75, type: 'transporthub', alert: 'none' }
+    { id: 'node-1', name: 'Narendra Modi Stadium — Main Bowl', x: 50, y: 50, type: 'stadium', alert: 'elevator' },
+    { id: 'node-2', name: 'IPL Fan Village — Pavilion End', x: 80, y: 35, type: 'fanzone', alert: 'grid' },
+    { id: 'node-3', name: "Athletes' & Media Centre", x: 30, y: 25, type: 'village', alert: 'none' },
+    { id: 'node-4', name: 'EV Shuttle Hub — Accessible Transport', x: 75, y: 75, type: 'transporthub', alert: 'none' }
   ]);
 
   // Accessibility Controls
