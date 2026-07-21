@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useEcoAccess } from '../context/EcoAccessContext';
 import { Cpu, Send, MessageSquare, Info, Shield, HelpCircle } from 'lucide-react';
 
@@ -12,6 +12,12 @@ export default function SustainabilityChat() {
     spectatorFeedbacks,
     translateFeedback
   } = useEcoAccess();
+
+  // Auto-scroll to latest message
+  const chatEndRef = useRef(null);
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages, isTyping]);
 
   const [expandedRAG, setExpandedRAG] = useState({});
 
@@ -82,6 +88,7 @@ export default function SustainabilityChat() {
                 <span style={{fontStyle: 'italic', color: 'var(--color-text-secondary)'}}>Gemini is modeling parameters...</span>
               </div>
             )}
+            <div ref={chatEndRef} />
           </div>
 
           <div style={{padding: '0.5rem 0.5rem 0 0.5rem'}}>

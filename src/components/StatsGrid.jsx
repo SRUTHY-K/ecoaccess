@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useEcoAccess } from '../context/EcoAccessContext';
 import { 
   Activity, 
@@ -9,8 +9,39 @@ import {
   ArrowDownRight 
 } from 'lucide-react';
 
+// Smooth count-up animation when a metric value changes
+function useAnimatedNumber(target, duration = 700) {
+  const [current, setCurrent] = useState(target);
+  const prevRef = useRef(target);
+  useEffect(() => {
+    const start = prevRef.current;
+    const diff = target - start;
+    if (diff === 0) return;
+    const startTime = performance.now();
+    const step = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease-out cubic: feels natural for counters
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCurrent(Math.round(start + diff * eased));
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        prevRef.current = target;
+      }
+    };
+    requestAnimationFrame(step);
+  }, [target, duration]);
+  return current;
+}
+
 export default function StatsGrid() {
   const { metrics } = useEcoAccess();
+
+  const animatedCarbon = useAnimatedNumber(metrics.carbonFootprint);
+  const animatedGreen = useAnimatedNumber(metrics.greenEnergyMix);
+  const animatedIncl = useAnimatedNumber(metrics.inclusivityIndex);
+  const animatedFanSat = useAnimatedNumber(metrics.fanSat);
 
   // Helper to generate dynamic sparkline SVG path based on value trends
   const getSparklinePath = (type, value) => {
@@ -38,7 +69,7 @@ export default function StatsGrid() {
           <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>Carbon Footprint</span>
           <Activity size={16} style={{color: 'var(--color-accent-red)'}} />
         </div>
-        <div className="stat-value">{metrics.carbonFootprint.toLocaleString()} t</div>
+        <div className="stat-value">{animatedCarbon.toLocaleString()} t</div>
         <div className="stat-change negative" style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
           <span>Metric Tonnes CO2e</span>
           <span style={{ color: 'var(--color-accent-red)', fontWeight: 'bold' }}>Scope 2 & 3</span>
@@ -56,7 +87,7 @@ export default function StatsGrid() {
           <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>Renewable Energy Share</span>
           <Zap size={16} style={{color: 'var(--color-accent-emerald)'}} />
         </div>
-        <div className="stat-value">{metrics.greenEnergyMix}%</div>
+        <div className="stat-value">{animatedGreen}%</div>
         <div className="stat-change positive" style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
           <span>Green Energy Mix</span>
           <span style={{ color: 'var(--color-accent-emerald)', fontWeight: 'bold' }}>Active Peak</span>
@@ -74,7 +105,7 @@ export default function StatsGrid() {
           <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>Accessibility Index</span>
           <Compass size={16} style={{color: 'var(--color-accent-cyan)'}} />
         </div>
-        <div className="stat-value">{metrics.inclusivityIndex}%</div>
+        <div className="stat-value">{animatedIncl}%</div>
         <div className={`stat-change ${metrics.inclusivityIndex > 60 ? 'positive' : 'negative'}`} style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
             {metrics.inclusivityIndex > 60 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
@@ -95,7 +126,7 @@ export default function StatsGrid() {
           <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>Spectator Satisfaction</span>
           <MessageSquare size={16} style={{color: 'var(--color-accent-pink)'}} />
         </div>
-        <div className="stat-value">{metrics.fanSat}%</div>
+        <div className="stat-value">{animatedFanSat}%</div>
         <div className={`stat-change ${metrics.fanSat > 65 ? 'positive' : 'negative'}`} style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
           <span>{metrics.fanSat > 75 ? 'Highly Satisfied' : 'Reputation Strain'}</span>
           <span style={{ color: 'var(--color-accent-pink)', fontWeight: 'bold' }}>Live Sentiment</span>
