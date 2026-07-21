@@ -1,5 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:8000'
+  : '';
+
 const EcoAccessContext = createContext();
 
 export const EcoAccessProvider = ({ children }) => {
@@ -8,7 +12,7 @@ export const EcoAccessProvider = ({ children }) => {
 
   // Dynamic Product Settings
   const [eventTitle, setEventTitle] = useState('EcoAccess Command Center');
-  const [eventSubtitle, setEventSubtitle] = useState('Smart Venue Telemetry, Sustainable Operations & Inclusive Decision Hub');
+  const [eventSubtitle, setEventSubtitle] = useState('AI-Powered Decision Intelligence · Zero-Emission APAC Events · Real-Time Accessibility Operations');
   const [baseBudget, setBaseBudget] = useState(30.0);
 
   // Custom Dynamic Venue GIS Nodes
@@ -47,11 +51,11 @@ export const EcoAccessProvider = ({ children }) => {
     },
     {
       id: 'inc-302',
-      title: 'Grid Overload (Scope 2 Concessions)',
-      sector: 'Venue C: Mega Fan Zone',
-      location: 'Plaza Grid B2, Power Substation',
-      severity: 'medium',
-      time: '14 mins ago',
+      title: 'Grid Power Overload (Substation C)',
+      sector: 'IPL Fan Village — Pavilion End',
+      location: 'Main Power Substation, Concessions Wing',
+      severity: 'high',
+      time: '12 mins ago',
       status: 'unresolved',
       description: 'Scope 2 carbon draw spiked to 880 kW due to screen displays. Risk of fossil-fuel backup startup.',
       dispatcherLog: ''
@@ -59,7 +63,7 @@ export const EcoAccessProvider = ({ children }) => {
     {
       id: 'inc-303',
       title: 'Recycling Contamination (CCTV-12)',
-      sector: 'Venue C: Mega Fan Zone',
+      sector: 'IPL Fan Village — Pavilion End',
       location: 'Plaza Food Court, Bin #4',
       severity: 'medium',
       time: '18 mins ago',
@@ -70,7 +74,7 @@ export const EcoAccessProvider = ({ children }) => {
     {
       id: 'inc-304',
       title: 'Wheelchair Ramp Egress Block (CCTV-04)',
-      sector: 'Venue A: Stadium Arena (Main Gate)',
+      sector: 'Narendra Modi Stadium — Main Bowl',
       location: 'Gate 2 Entrance Pathway',
       severity: 'high',
       time: '24 mins ago',
@@ -102,7 +106,7 @@ export const EcoAccessProvider = ({ children }) => {
   const [chatMessages, setChatMessages] = useState([
     {
       sender: 'ai',
-      text: "Hello! I am Gemini, your EcoAccess Global Event Co-pilot. I analyze on-site energy, waste streams, and accessibility infrastructure. I translate multilingual fan feedback (Spanish, Japanese, German) and suggest automated dispatches for mobility barriers or carbon spikes. How can I assist you in hosting a sustainable and inclusive event?",
+      text: "🏏 Namaste! I am Gemini, your EcoAccess AI Decision Co-pilot — deployed at the Narendra Modi Stadium for this live IPL match (75,000 spectators). I monitor real-time energy telemetry, waste contamination, and accessibility barriers across all 4 venue zones. I can translate multilingual fan feedback (Spanish, Japanese, German, Hindi), cite APAC compliance codes, and recommend dispatches for carbon spikes or mobility emergencies. How can I assist you right now?",
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       citations: []
     }
@@ -135,6 +139,13 @@ export const EcoAccessProvider = ({ children }) => {
   const [credsStatus, setCredsStatus] = useState(null);
   const [isVerifyingCreds, setIsVerifyingCreds] = useState(false);
 
+  // In-app toast notification (replaces browser alert())
+  const [toastMessage, setToastMessage] = useState(null); // { text, type: 'success'|'error'|'warning' }
+  const showToast = (text, type = 'success') => {
+    setToastMessage({ text, type });
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
   // Load configuration & credentials on startup
   // Client Action Logger
   const logClientAction = (action, details, level = 'INFO', error = null) => {
@@ -150,7 +161,7 @@ export const EcoAccessProvider = ({ children }) => {
 
   // Load configuration on startup
   useEffect(() => {
-    fetch('http://localhost:8000/api/config')
+    fetch(`${API_BASE}/api/config`)
       .then(res => res.json())
       .then(data => {
         if (data.eventTitle) {
@@ -163,7 +174,7 @@ export const EcoAccessProvider = ({ children }) => {
       })
       .catch(err => console.log("Using local mock configurations (Backend offline)."));
 
-    fetch('http://localhost:8000/api/credentials')
+    fetch(`${API_BASE}/api/credentials`)
       .then(res => res.json())
       .then(data => {
         if (data.apiMode) {
@@ -181,7 +192,7 @@ export const EcoAccessProvider = ({ children }) => {
   const saveAndVerifyCredentials = (mode, key, projectId, location) => {
     setIsVerifyingCreds(true);
     setCredsStatus(null);
-    return fetch('http://localhost:8000/api/credentials', {
+    return fetch(`${API_BASE}/api/credentials`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -234,7 +245,7 @@ export const EcoAccessProvider = ({ children }) => {
 
   // Update carbon footprint from BigQuery ML when parameters change
   useEffect(() => {
-    fetch(`http://localhost:8000/api/predictions/carbon?renewables=${renewablesShare}&transit=${transitInclusivity}&recycling=${circularEconomyRate}&attendance=${spectatorCount}`)
+    fetch(`${API_BASE}/api/predictions/carbon?renewables=${renewablesShare}&transit=${transitInclusivity}&recycling=${circularEconomyRate}&attendance=${spectatorCount}`)
       .then(res => res.json())
       .then(data => {
         if (data.carbonFootprint !== undefined) {
@@ -250,7 +261,7 @@ export const EcoAccessProvider = ({ children }) => {
 
   // Load energy forecast
   const loadEnergyForecast = () => {
-    fetch('http://localhost:8000/api/predictions/energy')
+    fetch(`${API_BASE}/api/predictions/energy`)
       .then(res => res.json())
       .then(data => {
         if (data.forecast) {
@@ -274,7 +285,7 @@ export const EcoAccessProvider = ({ children }) => {
 
   // Persist configuration
   const persistConfig = (title, subtitle, budget, nodes) => {
-    fetch('http://localhost:8000/api/config', {
+    fetch(`${API_BASE}/api/config`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -377,7 +388,7 @@ export const EcoAccessProvider = ({ children }) => {
     const formData = new FormData();
     formData.append("file", file);
 
-    fetch("http://localhost:8000/api/detect-waste", {
+    fetch(`${API_BASE}/api/detect-waste`, {
       method: "POST",
       body: formData
     })
@@ -397,7 +408,7 @@ export const EcoAccessProvider = ({ children }) => {
             return inc;
           }));
           logClientAction('cctv_image_upload_contamination', `Gemini Vision audit returned contamination: ${data.contaminationDetail} (Fill level: ${data.fillLevel}%)`, 'WARNING');
-          alert(`AI Vision Alert: Recycling contamination detected! Details: ${data.contaminationDetail}`);
+          showToast(`⚠️ Contamination detected: ${data.contaminationDetail} (Fill: ${data.fillLevel}%)`, 'warning');
         } else {
           setIncidents(prev => prev.map(inc => {
             if (inc.id === 'inc-303') {
@@ -411,14 +422,14 @@ export const EcoAccessProvider = ({ children }) => {
             return inc;
           }));
           logClientAction('cctv_image_upload_clean', `Gemini Vision audit returned clean bin (Fill level: ${data.fillLevel}%)`);
-          alert(`AI Vision Result: No contamination detected. Bin is at ${data.fillLevel}% capacity.`);
+          showToast(`✅ Bin clean — No contamination. Fill level: ${data.fillLevel}%`, 'success');
         }
         setDemoStep(4);
       })
       .catch(err => {
         setIsVisionAnalyzing(false);
         logClientAction('cctv_image_upload_failed', 'Gemini Vision waste bin image audit call failed.', 'ERROR', err);
-        alert("Error calling Gemini Vision API. Backend might be offline.");
+        showToast('❌ Error calling Gemini Vision API. Backend may be offline.', 'error');
       });
   };
 
@@ -436,7 +447,7 @@ export const EcoAccessProvider = ({ children }) => {
     logClientAction('demo_copilot_brief_start', 'Demo Step 4: Requesting tactical operational brief from Gemini Copilot.');
     const eventContext = `Event: ${eventTitle}, Spectators: ${spectatorCount}, Renewables: ${renewablesShare}%, Accessibility: ${transitInclusivity}%, Audio Assist: ${audioAssistCoverage}%, Incidents: Elevator E-4 offline, Venue C grid spike, bin contamination.`;
  
-    fetch('http://localhost:8000/api/chat', {
+    fetch(`${API_BASE}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -485,7 +496,7 @@ export const EcoAccessProvider = ({ children }) => {
 
     setIsTyping(true);
     logClientAction('demo_rag_query_start', 'Demo Step 5: Querying compliance standards from AlloyDB pgvector store.');
-    fetch('http://localhost:8000/api/chat', {
+    fetch(`${API_BASE}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -706,7 +717,7 @@ export const EcoAccessProvider = ({ children }) => {
 
     const eventContext = `Event: ${eventTitle}, Budget: $${baseBudget}M, Renewables: ${renewablesShare}%, Accessibility: ${transitInclusivity}%, Audio Assist: ${audioAssistCoverage}%`;
 
-    fetch('http://localhost:8000/api/chat', {
+    fetch(`${API_BASE}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: queryInput, context: eventContext })
@@ -807,7 +818,7 @@ export const EcoAccessProvider = ({ children }) => {
   // Real-time Spanish/Japanese translation call
   const translateFeedback = (id, text) => {
     logClientAction('translate_feedback_start', `Requested translation and sentiment audit for feedback ID: ${id}`);
-    fetch('http://localhost:8000/api/translate', {
+    fetch(`${API_BASE}/api/translate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text })
@@ -1018,7 +1029,9 @@ export const EcoAccessProvider = ({ children }) => {
       gcpLocation, setGcpLocation,
       credsStatus, setCredsStatus,
       isVerifyingCreds, setIsVerifyingCreds,
-      saveAndVerifyCredentials
+      saveAndVerifyCredentials,
+      toastMessage,
+      showToast
     }}>
       {children}
     </EcoAccessContext.Provider>

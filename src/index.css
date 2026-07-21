@@ -1592,5 +1592,335 @@ button, input, select, textarea {
   color: var(--color-accent-red);
 }
 
+/* ═══════════════════════════════════════════════════
+   MOBILE RESPONSIVE BREAKPOINTS
+   ═══════════════════════════════════════════════════ */
 
+/* ─── Tablet & Large Mobile: 768px and below ─── */
+@media (max-width: 768px) {
+
+  /* Sidebar: transform to a horizontal bottom nav bar */
+  .app-container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    padding: 0.5rem 0.75rem;
+    border-right: none;
+    border-top: 1px solid var(--border-color);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    overflow-x: auto;
+    overflow-y: hidden;
+    align-items: center;
+    gap: 0;
+  }
+
+  .logo-section {
+    display: none; /* Hide full logo on mobile — save space */
+  }
+
+  .nav-group {
+    flex-direction: row;
+    gap: 0;
+    width: 100%;
+    justify-content: space-around;
+  }
+
+  .nav-item {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.5rem 0.4rem;
+    font-size: 0.65rem;
+    border-left: none !important;
+    border-bottom: 3px solid transparent;
+    border-radius: 0;
+    min-width: 52px;
+  }
+
+  .nav-item.active {
+    border-left: none;
+    border-bottom: 3px solid var(--color-accent-indigo);
+    padding-left: 0.4rem;
+    background: rgba(99, 102, 241, 0.08);
+  }
+
+  .nav-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .sidebar-footer {
+    display: none; /* Hide architecture badge on mobile */
+  }
+
+  /* Main content: full width, pad bottom for fixed nav */
+  .main-content {
+    height: calc(100vh - 64px);
+    padding-bottom: 64px;
+  }
+
+  /* Header: compact */
+  .header {
+    padding: 0.75rem 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .header-title-section h1 {
+    font-size: 1.1rem;
+    letter-spacing: -0.3px;
+  }
+
+  .header-title-section p {
+    font-size: 0.72rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .header-status {
+    gap: 0.75rem;
+  }
+
+  .pulse-indicator {
+    font-size: 0.72rem;
+  }
+
+  /* Content body: tighter padding */
+  .content-body {
+    padding: 1rem;
+  }
+
+  /* Stats grid: 2 columns on tablet */
+  .dashboard-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .stat-value {
+    font-size: 1.4rem;
+  }
+
+  /* All section grids → single column */
+  .section-grid-2x1,
+  .section-grid-1x1,
+  .section-grid-full {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Glass panels: reduce padding */
+  .glass-panel {
+    padding: 1rem;
+  }
+
+  .panel-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  /* Chat panel: full height on mobile */
+  .chat-container {
+    height: 60vh;
+  }
+
+  .chat-messages {
+    max-height: 45vh;
+  }
+
+  /* Demo controller: compact steps */
+  .demo-steps-list {
+    gap: 0.5rem;
+  }
+
+  /* Map panel: reduce height */
+  .map-canvas {
+    height: 300px;
+  }
+
+  /* Strategic sliders: single column */
+  .sliders-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Log viewer: reduce height */
+  .log-viewer-terminal {
+    height: 300px;
+  }
+
+  /* Buttons: full width on small screens */
+  .demo-cta-btn,
+  .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ─── Small Phones: 480px and below ─── */
+@media (max-width: 480px) {
+
+  /* Stats: single column on very small phones */
+  .dashboard-summary-grid {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .stat-value {
+    font-size: 1.2rem;
+  }
+
+  /* Content: minimal padding */
+  .content-body {
+    padding: 0.75rem;
+  }
+
+  /* Header: hide status badge entirely */
+  .header-status {
+    display: none;
+  }
+
+  .header-title-section h1 {
+    font-size: 1rem;
+  }
+
+  .header-title-section p {
+    font-size: 0.68rem;
+  }
+
+  /* Glass panels: very compact */
+  .glass-panel {
+    padding: 0.75rem;
+    border-radius: 8px;
+  }
+
+  /* Panel headers: stack on very small screens */
+  .panel-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .panel-title {
+    font-size: 0.85rem;
+  }
+
+  /* Map: compact height */
+  .map-canvas {
+    height: 240px;
+  }
+
+  /* Font sizes: normalize for readability */
+  .nav-item {
+    font-size: 0.6rem;
+    min-width: 44px;
+    padding: 0.4rem 0.2rem;
+  }
+
+  /* Chat: full screen feel */
+  .chat-container {
+    height: 65vh;
+  }
+
+  /* CCTV upload area: full width */
+  .cctv-upload-area {
+    padding: 1rem;
+  }
+
+  /* Incident cards: compact */
+  .incident-card {
+    padding: 0.75rem;
+  }
+
+  /* Config/product panels: compact inputs */
+  .config-field input,
+  .config-field select,
+  .config-field textarea {
+    font-size: 0.85rem;
+  }
+}
+
+/* ─── Landscape mobile fix ─── */
+@media (max-width: 768px) and (orientation: landscape) {
+  .sidebar {
+    height: auto;
+    padding: 0.3rem 0.5rem;
+  }
+
+  .main-content {
+    height: calc(100vh - 52px);
+    padding-bottom: 52px;
+  }
+
+  .map-canvas {
+    height: 200px;
+  }
+}
+
+/* ─── Toast Notifications ─── */
+.toast-notification {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  padding: 0.85rem 1.25rem;
+  border-radius: 8px;
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(99, 102, 241, 0.15);
+  color: #f3f4f6;
+  font-size: 0.85rem;
+  font-weight: 500;
+  z-index: 9999;
+  animation: toast-slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 350px;
+}
+
+.toast-notification.success {
+  border-left: 4px solid var(--color-accent-emerald);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(16, 185, 129, 0.15);
+}
+
+.toast-notification.warning {
+  border-left: 4px solid var(--color-accent-orange);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(245, 158, 11, 0.15);
+}
+
+.toast-notification.error {
+  border-left: 4px solid var(--color-accent-red);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(239, 68, 68, 0.15);
+}
+
+@keyframes toast-slide-in {
+  from {
+    transform: translateY(1.5rem) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Adjust toast position on mobile screens to sit above the bottom navigation bar */
+@media (max-width: 768px) {
+  .toast-notification {
+    bottom: 5.5rem;
+    right: 1rem;
+    left: 1rem;
+    max-width: none;
+  }
+}
 

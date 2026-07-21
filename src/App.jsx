@@ -63,13 +63,22 @@ function DashboardContent() {
 }
 
 function AppLayout() {
-  const { highContrast, fontSizeClass } = useEcoAccess();
+  const { highContrast, fontSizeClass, toastMessage } = useEcoAccess();
   return (
     <div className={`app-container ${highContrast ? 'high-contrast-active' : ''} ${fontSizeClass}`}>
       <Sidebar />
       <main className="main-content">
         <DashboardContent />
       </main>
+
+      {/* Toast Notification Container */}
+      {toastMessage && (
+        <div className={`toast-notification ${toastMessage.type}`}>
+          <div className="toast-content">
+            {toastMessage.text}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

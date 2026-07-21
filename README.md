@@ -1,15 +1,56 @@
 # EcoAccess Command Center
 
-> **AI-powered sustainability and accessibility operations platform for large-scale public events.**  
-> Built with React + FastAPI, powered by Google Cloud AI, BigQuery ML, and Vertex AI.
+> **AI-powered decision intelligence for zero-pollution, fully accessible large-scale public events.**  
+> Built with React + FastAPI · Google Vertex AI (Gemini 2.5 Flash) · BigQuery ML · AlloyDB pgvector
+
+<div align="center">
+
+[![Live Demo](https://img.shields.io/badge/🚀%20Live%20Demo-ecoaccess-6366f1?style=for-the-badge)](https://ecoaccess-457619638562.us-central1.run.app/)
+[![Cloud Run](https://img.shields.io/badge/Cloud%20Run-Deployed-4285F4?style=for-the-badge&logo=google-cloud)](https://ecoaccess-457619638562.us-central1.run.app/)
+[![Vertex AI](https://img.shields.io/badge/Vertex%20AI-Gemini%202.5%20Flash-34A853?style=for-the-badge&logo=google-cloud)](https://cloud.google.com/vertex-ai)
+
+**🎥 Demo Video:** [Watch the full walkthrough](https://ecoaccess-457619638562.us-central1.run.app/)
+
+</div>
 
 ---
 
-## Overview
+## 🏏 Why EcoAccess — and Why APAC?
 
-EcoAccess is a real-time decision intelligence dashboard that helps event operators manage **carbon footprints**, **energy grid loads**, **waste contamination**, and **accessibility barriers** — all from a single command center.
+APAC hosts some of the world's largest and most carbon-intensive public events. A single IPL match at Narendra Modi Stadium (capacity: 132,000) generates:
 
-It uses a suite of Google Cloud AI services to go beyond static dashboards: ML models predict future energy demand, Gemini Vision detects recycling contamination from live camera feeds, and a RAG-powered AI copilot synthesises all live signals into actionable operational briefs.
+- **≈ 450 tonnes CO₂** from energy consumption alone
+- **60–80 tonnes of mixed waste** per event day, with recycling contamination rates above 45%
+- **Persistent accessibility failures** — broken elevators, missing ramps, audio dead zones — affecting tens of thousands of fans with disabilities
+
+Event operators across India, Southeast Asia, and the Pacific currently manage these crises through **disconnected spreadsheets, manual radio calls, and reactive incident reports** — hours after the damage is done.
+
+**EcoAccess changes that.** It puts real-time AI decision intelligence directly in the hands of the operations team: predictive energy forecasts, live waste contamination detection, and an AI copilot that synthesises every sensor, incident, and compliance guideline into a single actionable brief — in seconds.
+
+---
+
+## 🖥️ Live Demo
+
+🌐 **[https://ecoaccess-457619638562.us-central1.run.app/](https://ecoaccess-457619638562.us-central1.run.app/)**
+
+> The app works fully in **offline/demo mode** — no GCP credentials required to explore the UI and demo workflow.
+
+### Judge Quick-Start (90 seconds)
+
+1. **Open** the live URL above
+2. Click **"Decision Intelligence Demo"** in the left sidebar
+3. Hit **▶ Start Demo** and step through the 6-step AI workflow:
+   - Crowd surge → BigQuery ML energy + carbon forecast → Vision AI waste scan → Gemini AI brief → RAG compliance search → automated mitigation
+4. Switch to **"AI Copilot"** tab and ask: *"What actions reduce our Scope 2 emissions right now?"*
+5. Upload a waste bin image in **"CCTV Audit"** to see Gemini Vision classify recycling contamination live
+
+---
+
+## 📸 Screenshots
+
+![Dashboard](docs/screenshots/dashboard.png)
+![Energy Forecast](docs/screenshots/forecast.png)
+![AI Copilot](docs/screenshots/copilot.png)
 
 ---
 
@@ -18,9 +59,9 @@ It uses a suite of Google Cloud AI services to go beyond static dashboards: ML m
 ```
 ┌─────────────────────────────────────────────────────┐
 │                   React Frontend                    │
-│  (Vite · Tailwind-free CSS · EcoAccessContext)      │
+│  (Vite · Vanilla CSS · EcoAccessContext)            │
 └────────────────────┬────────────────────────────────┘
-                     │ REST (localhost:8000)
+                     │ REST API (port 8000)
 ┌────────────────────▼────────────────────────────────┐
 │              FastAPI Backend (Python)               │
 │  api/routes.py  ·  services/  ·  core/config.py    │
@@ -67,16 +108,16 @@ ecoaccess/
 │   ├── api/routes.py           # API endpoint definitions
 │   ├── core/
 │   │   ├── config.py           # GCP project config, GenAI client init
-│   │   └── database.py         # AlloyDB / local vector store connection
+│   │   ├── database.py         # AlloyDB / local vector store connection
+│   │   └── logger.py           # Structured JSON Lines logger
 │   ├── services/
 │   │   ├── ai_service.py       # Gemini chat, translation, vision detection
 │   │   ├── bq_service.py       # BigQuery ML predictions & ARIMA forecast
 │   │   └── rag_service.py      # Embedding generation & cosine similarity search
 │   ├── schemas/models.py       # Pydantic request/response models
 │   ├── seed_bigquery.py        # One-time BQ dataset + ML model training script
-│   ├── sql/bigquery_ml_models.sql  # Reference SQL for both ML models
-│   ├── requirements.txt        # Python dependencies
 │   └── tests/                  # Unit + integration test suite
+├── docs/screenshots/           # Dashboard & UI screenshots
 ├── .env.template               # Environment variable template
 ├── Dockerfile                  # Cloud Run container definition
 └── index.html                  # App entry point
@@ -112,7 +153,8 @@ Edit `.env`:
 ```env
 GOOGLE_CLOUD_PROJECT=your-gcp-project-id
 GOOGLE_CLOUD_LOCATION=us-central1
-GOOGLE_GENAI_USE_VERTEXAI=True
+GOOGLE_GENAI_USE_VERTEXAI=False
+GEMINI_API_KEY=your-gemini-api-key-here
 ```
 
 ### 3. Authenticate with GCP
@@ -173,6 +215,7 @@ Open [http://localhost:5173](http://localhost:5173)
 | `POST` | `/api/translate` | Multilingual feedback translation & sentiment |
 | `POST` | `/api/upload-manual` | Embed & index a document into the RAG store |
 | `GET/POST` | `/api/config` | Load / save event configuration |
+| `GET` | `/api/logs` | Fetch system action and error logs |
 
 ---
 
@@ -193,13 +236,22 @@ All steps include **offline fallbacks** so the demo works without a running back
 
 ---
 
-## GCP Credentials
+## GCP Credentials & API Modes
 
-Credentials are resolved in this order:
+EcoAccess supports two modes for running Gemini AI models:
 
-1. **Application Default Credentials** — set via `gcloud auth application-default login`, stored in `%APPDATA%\gcloud\application_default_credentials.json` (Windows) or `~/.config/gcloud/` (Linux/Mac). Used by all GCP SDKs automatically.
-2. **`.env` file** — sets `GOOGLE_CLOUD_PROJECT` (which project to bill) and `GOOGLE_GENAI_USE_VERTEXAI=True` (routes Gemini through Vertex AI instead of AI Studio).
-3. **Cloud Run** — on deployed instances, ADC is replaced by the service account attached to the Cloud Run service. `.env` values are set as Cloud Run environment variables.
+### Option A: Google AI Studio Mode (Recommended for local dev)
+* **Configuration**: Set `GOOGLE_GENAI_USE_VERTEXAI=False` and supply `GEMINI_API_KEY` in `.env`.
+* **Authentication**: Authenticates using the simple API key. No GCP account login is required for Gemini (but `gcloud auth` is still required locally to access BigQuery).
+
+### Option B: Google Cloud Vertex AI Mode (Enterprise Security)
+* **Configuration**: Set `GOOGLE_GENAI_USE_VERTEXAI=True` in `.env`.
+* **Authentication**: Uses Application Default Credentials (ADC) from your local computer (`gcloud auth application-default login`) or the attached Service Account on Cloud Run.
+
+Credentials and billing are resolved in this order:
+1. **API Key (`GEMINI_API_KEY`)**: Prioritized if AI Studio mode is active.
+2. **Application Default Credentials (ADC)**: Used automatically for BigQuery access, or for Vertex AI if Vertex mode is active.
+3. **Cloud Run Service Account**: Automatically resolves permissions when running in the cloud.
 
 ---
 
@@ -219,31 +271,7 @@ gcloud run deploy ecoaccess \
   --set-env-vars GOOGLE_CLOUD_PROJECT=your-project-id,GOOGLE_GENAI_USE_VERTEXAI=True
 ```
 
-This produces a public URL in the format:
-```
-https://ecoaccess-<hash>-uc.a.run.app
-```
-
-### Custom Domain — ecoaccess.ai *(planned)*
-
-The production deployment will be served at **ecoaccess.ai** once the domain is registered and mapped.
-
-To connect a custom domain to Cloud Run:
-
-```bash
-# 1. Verify domain ownership in Google Search Console
-# 2. Map the domain to the Cloud Run service
-gcloud beta run domain-mappings create \
-  --service ecoaccess \
-  --domain ecoaccess.ai \
-  --region us-central1
-```
-
-Then add the CNAME/A records provided by Google to your DNS registrar. TLS is automatically provisioned by Cloud Run.
-
 ### Environment Variables on Cloud Run
-
-Set these in the Cloud Run console or via `--set-env-vars`:
 
 | Variable | Value |
 |---|---|
@@ -259,12 +287,7 @@ Set these in the Cloud Run console or via `--set-env-vars`:
 > On Cloud Run, Application Default Credentials are provided automatically via the attached service account — no `gcloud auth` command needed. Ensure the service account has the **BigQuery Data Editor**, **Vertex AI User**, and optionally **Cloud AlloyDB Client** IAM roles.
 
 ---
-## 👥 Hackathon Team & Contributions
-* **[@SRUTHY-K](https://github.com)** - Lead Developer / Core Logic
-* **[@lawthermegan](https://github.com)** - Developer / UI /UX and backend API configuration
-* **[@OmkarTanajiPatil](https://github.com)** - Developer / Integration, logging
+
 ## License
 
 MIT
-
-

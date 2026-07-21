@@ -1,11 +1,11 @@
 {
   "eventTitle": "EcoAccess Command Center",
-  "eventSubtitle": "Smart Venue Telemetry, Sustainable Operations & Inclusive Decision Hub",
+  "eventSubtitle": "AI-Powered Decision Intelligence · Zero-Emission APAC Events · Real-Time Accessibility Operations",
   "baseBudget": 30.0,
   "mapNodes": [
     {
       "id": "node-1",
-      "name": "Venue A: Stadium Arena",
+      "name": "Narendra Modi Stadium — Main Bowl",
       "x": 50,
       "y": 50,
       "type": "stadium",
@@ -13,7 +13,7 @@
     },
     {
       "id": "node-2",
-      "name": "Venue C: Mega Fan Zone",
+      "name": "IPL Fan Village — Pavilion End",
       "x": 80,
       "y": 35,
       "type": "fanzone",
@@ -21,7 +21,7 @@
     },
     {
       "id": "node-3",
-      "name": "Venue B: Athletes' Village",
+      "name": "Athletes' & Media Centre",
       "x": 30,
       "y": 25,
       "type": "village",
@@ -29,7 +29,7 @@
     },
     {
       "id": "node-4",
-      "name": "Venue D: Accessible Transport Hub",
+      "name": "EV Shuttle Hub — Accessible Transport",
       "x": 75,
       "y": 75,
       "type": "transporthub",

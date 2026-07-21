@@ -90,6 +90,22 @@ def pre_populate_rag():
         "Scope 3 travel emissions must be offset by allocating zero-emission public transport. A 10% increase in shuttle capacity corresponds to an estimated 4,200 metric tonnes CO2e reduction."
     )
 
+    add_document_to_rag(
+        "doc-5",
+        "APAC Stadium Carbon Budget Policy",
+        "Large-scale APAC cricket and sporting events with attendance exceeding 50,000 must operate within a carbon budget of 500 tonnes CO2e per event day. Scope 2 emissions from venue energy must be offset through renewable energy certificates (RECs). Solar peak-shaving storage must be activated when grid draw exceeds 800 kW to prevent fossil backup generator startup. Venues must report carbon metrics in real time to the national sustainability authority."
+    )
+    add_document_to_rag(
+        "doc-6",
+        "Cricket Event Waste Management Code",
+        "Zero-waste-to-landfill policy applies to all BCCI and ICC-sanctioned cricket events in India. Compost bins must contain only certified compostable packaging. Recycling contamination exceeding 5% by volume triggers mandatory manual sorting before collection. Waste diversion targets must be 85% or higher for events at Tier-1 venues (Narendra Modi Stadium, Wankhede, Eden Gardens). Vision AI monitoring of waste bins is recommended during peak concession windows (17:00–20:00 IST)."
+    )
+    add_document_to_rag(
+        "doc-7",
+        "APAC Crowd Safety and Accessibility Standard AS3745",
+        "APAC venues with capacity exceeding 30,000 must maintain all accessibility infrastructure at 100% operational status during public events. Elevator failure at mobility-designated gates triggers mandatory rerouting within 10 minutes via auxiliary ramp structures of minimum 1.8m clear width (AS1428.2 compliant). Audio description headset systems must maintain 20% minimum coverage of total seating capacity. Real-time crowd density monitoring must alert operations staff when density exceeds 1.2 persons per square metre at egress points."
+    )
+
 pre_populate_rag()
 
 # Serve frontend build static files if present
