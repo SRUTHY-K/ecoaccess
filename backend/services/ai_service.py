@@ -102,7 +102,15 @@ def chat_copilot(query: str, system_context: str) -> dict:
             model="gemini-2.5-flash",
             contents=full_prompt,
             config=types.GenerateContentConfig(
-                system_instruction="You are Gemini, the EcoAccess Global Event Co-pilot. Answer operators accurately using the context provided."
+                system_instruction=f"""You are Gemini, the AI Decision Co-pilot for EcoAccess Command Center — \
+deployed at a 75,000-capacity APAC cricket stadium during a live IPL match. \
+You have real-time access to venue telemetry, energy grid data, waste contamination alerts, \
+and accessibility incident reports. \
+LIVE CONTEXT: {system_context[:500] if system_context else 'Normal stadium operations.'} \
+Your role: synthesize all signals into clear, actionable decisions. Be concise, specific, \
+and prioritize safety over cost savings. Cite compliance codes when relevant \
+(e.g., ACCESSIBILITY RULE 4.2.1, SUBSTATION ENERGY POLICY). \
+Always end with a concrete next action the operator can take in the next 5 minutes."""
             )
         )
         log_event(
@@ -169,6 +177,24 @@ def chat_copilot(query: str, system_context: str) -> dict:
                 "reply": "Under the current configuration, execution budget remaining is balanced against capital upgrades. Major expenses are allocated to electric shuttle dispatch ($6.5M) and solar battery upgrades ($5.0M).",
                 "citation": "AlloyDB: budget_ledger_register (offline)",
                 "snippet": "STRATEGIC CAPITAL CODE: Sustainability capital upgrades are capped at $30M total budget. Efficiency must be balanced above 70%."
+            },
+            {
+                "keywords": ['carbon', 'emissions', 'scope', 'co2', 'footprint', 'tonnes'],
+                "reply": "Carbon Status: BigQuery ML Linear Regression projects 450 tonnes CO2e for this event. Activating solar peak shaving and routing 15% more spectators to low-floor EV shuttles would reduce this by an estimated 85 tonnes — keeping us within the green energy budget.",
+                "citation": "BigQuery ML: carbon_prediction_model (offline)",
+                "snippet": "CARBON MANAGEMENT POLICY: All Scope 2 emissions from venue energy must be offset through renewable energy certificates. Scope 3 transit emissions must be minimized via EV shuttle dispatch priority."
+            },
+            {
+                "keywords": ['ramp', 'wheelchair', 'mobility', 'disabled', 'accessible', 'impaired'],
+                "reply": "Accessibility Report: Per APAC stadium compliance code AS1428.2, all gate ramps must support 1.8m clearance for power wheelchairs. Gate 2 south ramp is currently clear. Gate 6 elevator remains offline — auxiliary ramp via Section 103 is active and monitored.",
+                "citation": "AlloyDB: accessibility_compliance_register (offline)",
+                "snippet": "ACCESSIBILITY CODE AS1428.2: Ramp gradients at public event venues must not exceed 1:14 slope and must provide 1800mm minimum clear width for mobility device access at all spectator entry points."
+            },
+            {
+                "keywords": ['apac', 'india', 'cricket', 'ipl', 'stadium', 'event', 'match'],
+                "reply": "EcoAccess is managing sustainability and accessibility operations for this APAC cricket event in real time. Key metrics: 75,000 spectators, 4 active venue zones, 2 unresolved incidents, carbon budget at 450 tonnes CO2e. Systems monitoring: ARIMA energy forecast, Gemini Vision waste audit, and GIS accessibility grid.",
+                "citation": "EcoAccess System Context (offline)",
+                "snippet": "ECOACCESS APAC DEPLOYMENT: Configured for large-scale cricket and sporting events across India, Southeast Asia, and Pacific venues with up to 150,000 spectator capacity."
             }
         ]
 
@@ -195,7 +221,8 @@ def chat_copilot(query: str, system_context: str) -> dict:
 def detect_waste_gemini(image_bytes: bytes, mime_type: str) -> dict:
     """Uses Gemini 2.5 Flash multimodal vision to detect bin fullness and contamination."""
     prompt = """
-    Analyze this image of a waste bin or recycling container to audit contamination and capacity:
+    You are an AI waste auditor deployed at an APAC cricket stadium food court operating under a zero-waste-to-landfill policy.
+    Analyze this image of a waste bin or recycling container for contamination and fill level:
     
     1. CONSTITUTION GUIDELINES:
        - Organic compost bins should ONLY contain food scraps, soils, compostable paper, or raw plants. Landfill trash, plastic bags, wrappers, utensils, or metal cans inside a compost bin constitute CONTAMINATION.
