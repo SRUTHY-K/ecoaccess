@@ -289,5 +289,4 @@ gcloud run deploy ecoaccess \
 ---
 
 ## License
-
 MIT
