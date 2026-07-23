@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useEcoAccess } from '../context/EcoAccessContext';
 import { 
   Activity, 
@@ -8,6 +8,32 @@ import {
   ArrowUpRight, 
   ArrowDownRight 
 } from 'lucide-react';
+
+// Smooth count-up animation when a metric value changes
+function useAnimatedNumber(target, duration = 700) {
+  const [current, setCurrent] = useState(target);
+  const prevRef = useRef(target);
+  useEffect(() => {
+    const start = prevRef.current;
+    const diff = target - start;
+    if (diff === 0) return;
+    const startTime = performance.now();
+    const step = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease-out cubic: feels natural for counters
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCurrent(Math.round(start + diff * eased));
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        prevRef.current = target;
+      }
+    };
+    requestAnimationFrame(step);
+  }, [target, duration]);
+  return current;
+}
 
 const statsTranslations = {
   en: {
@@ -102,10 +128,15 @@ export default function StatsGrid() {
 
   const handleTextToSpeech = () => {};
 
+  const animatedCarbon = useAnimatedNumber(metrics.carbonFootprint);
+  const animatedGreen = useAnimatedNumber(metrics.greenEnergyMix);
+  const animatedIncl = useAnimatedNumber(metrics.inclusivityIndex);
+  const animatedFanSat = useAnimatedNumber(metrics.fanSat);
+
   const carbonPct = 28; // Displays clean 28% carbon intensity load scale against the steady 62,517 t baseline
-  const energyPct = Math.max(0, Math.min(100, Math.round(metrics.greenEnergyMix)));
-  const accessPct = Math.max(0, Math.min(100, Math.round(metrics.inclusivityIndex)));
-  const fanPct = Math.max(0, Math.min(100, Math.round(metrics.fanSat)));
+  const energyPct = Math.max(0, Math.min(100, Math.round(animatedGreen)));
+  const accessPct = Math.max(0, Math.min(100, Math.round(animatedIncl)));
+  const fanPct = Math.max(0, Math.min(100, Math.round(animatedFanSat)));
 
   const t = statsTranslations[appLanguage] || statsTranslations.en;
 
@@ -117,7 +148,7 @@ export default function StatsGrid() {
           <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>{t.carbonFootprint}</span>
           <Activity size={16} style={{color: 'var(--color-accent-red)'}} />
         </div>
-        <div className="stat-value">{metrics.carbonFootprint.toLocaleString()} t</div>
+        <div className="stat-value">{animatedCarbon.toLocaleString()} t</div>
         <div className="stat-change negative" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginTop: '0.4rem', marginBottom: '0.8rem' }}>
           <span style={{ fontSize: '0.72rem', color: 'var(--color-text-secondary)' }}>{t.metricTonnes}</span>
           <span style={{ fontSize: '0.72rem', fontWeight: '700', color: 'var(--color-accent-red)' }}>{t.scope}</span>
@@ -141,7 +172,7 @@ export default function StatsGrid() {
           <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>{t.renewableShare}</span>
           <Zap size={16} style={{color: 'var(--color-accent-emerald)'}} />
         </div>
-        <div className="stat-value">{metrics.greenEnergyMix}%</div>
+        <div className="stat-value">{animatedGreen}%</div>
         <div className="stat-change positive" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginTop: '0.4rem', marginBottom: '0.8rem' }}>
           <span style={{ fontSize: '0.72rem', color: 'var(--color-text-secondary)' }}>{t.energyMix}</span>
           <span style={{ fontSize: '0.72rem', fontWeight: '700', color: 'var(--color-accent-emerald)' }}>{t.activePeak}</span>
@@ -165,7 +196,7 @@ export default function StatsGrid() {
           <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>{t.accessibilityIndex}</span>
           <Compass size={16} style={{color: 'var(--color-accent-cyan)'}} />
         </div>
-        <div className="stat-value">{metrics.inclusivityIndex}%</div>
+        <div className="stat-value">{animatedIncl}%</div>
         <div className={`stat-change ${metrics.inclusivityIndex > 60 ? 'positive' : 'negative'}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginTop: '0.4rem', marginBottom: '0.8rem' }}>
           <span style={{ fontSize: '0.72rem', color: 'var(--color-text-secondary)' }}>{metrics.inclusivityIndex > 70 ? t.highInclusivity : t.barrierWarning}</span>
           <span style={{ fontSize: '0.72rem', fontWeight: '700', color: 'var(--color-accent-cyan)' }}>{t.gisGrid}</span>
@@ -189,7 +220,7 @@ export default function StatsGrid() {
           <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>{t.spectatorSat}</span>
           <MessageSquare size={16} style={{color: 'var(--color-accent-pink)'}} />
         </div>
-        <div className="stat-value">{metrics.fanSat}%</div>
+        <div className="stat-value">{animatedFanSat}%</div>
         <div className={`stat-change ${metrics.fanSat > 65 ? 'positive' : 'negative'}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginTop: '0.4rem', marginBottom: '0.8rem' }}>
           <span style={{ fontSize: '0.72rem', color: 'var(--color-text-secondary)' }}>{metrics.fanSat > 75 ? t.highlySatisfied : t.reputationStrain}</span>
           <span style={{ fontSize: '0.72rem', fontWeight: '700', color: 'var(--color-accent-pink)' }}>{t.liveSentiment}</span>

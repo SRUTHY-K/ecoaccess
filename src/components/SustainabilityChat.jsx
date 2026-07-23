@@ -229,6 +229,11 @@ export default function SustainabilityChat() {
   const [satisfactionSubmitted, setSatisfactionSubmitted] = useState(false);
   const chatEndRef = useRef(null);
 
+  // Auto-scroll to latest message
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages, isTyping]);
+
   const handleSendFeedback = (index, text) => {
     sendFeedbackToManager(text);
     setSentFeedbacks(prev => ({ ...prev, [index]: true }));
@@ -595,6 +600,7 @@ export default function SustainabilityChat() {
                 <span style={{ fontSize: '0.65rem', fontWeight: 'bold' }}>{t.sayBoActive}</span>
               </span>
             )}
+            <div ref={chatEndRef} />
           </div>
 
           {/* Messages viewport */}
