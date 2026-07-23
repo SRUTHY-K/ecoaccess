@@ -119,6 +119,17 @@ jobs:
         if: steps.check-secrets.outputs.skip != 'true'
         uses: google-github-actions/setup-gcloud@v2
 
+      # ── Create Artifact Registry Repo if not exists ──
+      - name: Create Artifact Registry Repository
+        if: steps.check-secrets.outputs.skip != 'true'
+        run: |
+          gcloud artifacts repositories create ecoaccess \
+            --repository-format=docker \
+            --location="${{ env.REGION }}" \
+            --description="EcoAccess Docker Repository" \
+            --project="${{ secrets.GCP_PROJECT_ID }}" \
+            || true
+
       # ── Build & Push Docker Image ──
       - name: Build and push container image
         if: steps.check-secrets.outputs.skip != 'true'
