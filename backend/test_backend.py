@@ -11,7 +11,7 @@ def test_endpoint(url, data=None, method="GET"):
             body = res.read().decode("utf-8")
             return json.loads(body)
     except Exception as e:
-        print(f"Error testing {url}: {e}, heii")
+        print(f"Error testing {url}: {e}")
         return None
 
 def verify_all():
