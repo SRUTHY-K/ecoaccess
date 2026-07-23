@@ -6,60 +6,21 @@ backend_dir = os.path.dirname(os.path.abspath(__file__))
 if backend_dir not in sys.path:
     sys.path.insert(0, backend_dir)
 
-import time
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from core.config import CONFIG_FILE
-from core.logger import log_event
 from services.rag_service import add_document_to_rag
 from api.routes import router as api_router
 
 app = FastAPI(title="EcoAccess SaaS Backend")
 
-# HTTP Request Logging Middleware (Outputs Structured JSON to stdout)
-@app.middleware("http")
-async def log_requests(request: Request, call_next):
-    start_time = time.time()
-    method = request.method
-    path = request.url.path
-    client_ip = request.client.host if request.client else "unknown"
-    
-    try:
-        response = await call_next(request)
-        process_time = (time.time() - start_time) * 1000
-        status_code = response.status_code
-        
-        log_event(
-            level="INFO",
-            component="Middleware",
-            action="http_request",
-            details=f"{method} {path} - Status: {status_code} - Duration: {process_time:.2f}ms - IP: {client_ip}"
-        )
-        return response
-    except Exception as e:
-        process_time = (time.time() - start_time) * 1000
-        log_event(
-            level="ERROR",
-            component="Middleware",
-            action="http_request_failed",
-            details=f"{method} {path} failed after {process_time:.2f}ms - IP: {client_ip}",
-            error=str(e)
-        )
-        raise
-
 # Setup CORS middleware
-allowed_origins_env = os.environ.get("ALLOWED_ORIGINS", "")
-if allowed_origins_env:
-    allowed_origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
-else:
-    allowed_origins = ["*"]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=True if allowed_origins != ["*"] else False,
+    allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
