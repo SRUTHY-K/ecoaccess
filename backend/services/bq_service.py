@@ -1,6 +1,5 @@
 from google.cloud import bigquery
 from core.config import PROJECT_ID
-from core.logger import log_event
 
 def predict_carbon_emissions_bq(renewables: int, transit: int, recycling: int, attendance: int = 50000) -> float:
     """Queries BigQuery ML.PREDICT to estimate carbon footprint based on parameters."""
@@ -15,22 +14,9 @@ def predict_carbon_emissions_bq(renewables: int, transit: int, recycling: int, a
         query_job = bq_client.query(query)
         results = list(query_job.result())
         if results:
-            val = round(results[0]["predicted_carbon_footprint"], 1)
-            log_event(
-                level="INFO",
-                component="BQ_Service",
-                action="predict_carbon",
-                details=f"BigQuery ML Carbon prediction: {val} tonnes (Renewables: {renewables}%, Transit: {transit}%, Circular: {recycling}%, Attendance: {attendance})"
-            )
-            return val
+            return round(results[0]["predicted_carbon_footprint"], 1)
     except Exception as e:
-        log_event(
-            level="WARNING",
-            component="BQ_Service",
-            action="predict_carbon_failed",
-            details=f"BigQuery ML Carbon prediction failed, using local model fallback. Renewables: {renewables}%, Transit: {transit}%, Circular: {recycling}%, Attendance: {attendance}",
-            error=str(e)
-        )
+        print(f"BigQuery ML predict error: {e}")
     # Local fallback formula matching the ML coefficient
     base = 86000 - (renewables / 100.0) * 20000 - (transit / 100.0) * 35000 - (recycling / 100.0) * 8000
     return round(base, 1)
@@ -57,28 +43,15 @@ def forecast_energy_demand_bq() -> list[dict]:
         """
         query_job = bq_client.query(query)
         results = list(query_job.result())
-        forecast_data = [
+        return [
             {
                 "time": f"{int(r['hour_of_day']):02d}:00",
                 "value": round(r["total_grid_kw"], 1)
             }
             for r in results
         ]
-        log_event(
-            level="INFO",
-            component="BQ_Service",
-            action="forecast_energy",
-            details=f"BigQuery ML ARIMA peak load forecast: {forecast_data}"
-        )
-        return forecast_data
     except Exception as e:
-        log_event(
-            level="WARNING",
-            component="BQ_Service",
-            action="forecast_energy_failed",
-            details="BigQuery ML ARIMA energy forecast failed, using local static load series fallback.",
-            error=str(e)
-        )
+        print(f"BigQuery ML forecast error: {e}")
     # Return mock time series if offline
     return [
         {"time": "18:00", "value": 680.0},
@@ -86,4 +59,3 @@ def forecast_energy_demand_bq() -> list[dict]:
         {"time": "20:00", "value": 750.0},
         {"time": "21:00", "value": 520.0}
     ]
-

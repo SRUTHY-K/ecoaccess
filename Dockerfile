@@ -17,8 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install python dependencies
-COPY backend/requirements.txt ./requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir fastapi uvicorn pydantic google-genai google-auth google-cloud-bigquery python-multipart psycopg2-binary fastapi-staticfiles
 
 # Copy backend source code
 COPY backend/ ./backend

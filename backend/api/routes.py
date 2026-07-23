@@ -3,7 +3,6 @@ import json
 from fastapi import APIRouter, Form, File, UploadFile, HTTPException
 from schemas.models import ChatRequest, FeedbackRequest, EventConfig, CredentialsConfig
 from core.config import CONFIG_FILE, CREDENTIALS_FILE, get_credentials
-from core.logger import log_event
 from services.ai_service import chat_copilot, translate_and_analyze_feedback, detect_waste_gemini
 from services.rag_service import add_document_to_rag
 from services.bq_service import predict_carbon_emissions_bq, forecast_energy_demand_bq
@@ -53,14 +52,19 @@ def get_config():
         except Exception:
             pass
     return {
-        "eventTitle": "EcoAccess Command Center",
-        "eventSubtitle": "AI-Powered Decision Intelligence · Zero-Emission APAC Events · Real-Time Accessibility Operations",
+        "eventTitle": "APAC Cricket Stadium Navigator",
+        "eventSubtitle": "EcoAccess Smart Sustainability & Accessibility Navigation Center",
         "baseBudget": 30.0,
         "mapNodes": [
-            { "id": "node-1", "name": "Narendra Modi Stadium — Main Bowl", "x": 50, "y": 50, "type": "stadium", "alert": "elevator" },
-            { "id": "node-2", "name": "IPL Fan Village — Pavilion End", "x": 80, "y": 35, "type": "fanzone", "alert": "grid" },
-            { "id": "node-3", "name": "Athletes' & Media Centre", "x": 30, "y": 25, "type": "village", "alert": "none" },
-            { "id": "node-4", "name": "EV Shuttle Hub — Accessible Transport", "x": 75, "y": 75, "type": "transporthub", "alert": "none" }
+            { "id": "node-entry", "name": "🟢 Main Entrance Gate", "x": 10, "y": 85, "type": "entry", "color": "#2dd4bf", "details": "Gate 1 Main Entrance: Contextual ticketing, security screening checkpoints, level-grade access corridors, and physical routing support." },
+            { "id": "node-exit", "name": "🔴 Main Exit Gate", "x": 90, "y": 15, "type": "exit", "color": "#f43f5e", "details": "Gate 8 Main Exit Gate: High-capacity pedestrian outflow corridor with clear directional lighting guiding spectators directly to transportation links." },
+            { "id": "node-solar", "name": "☀️ Solar Charging Station", "x": 24, "y": 75, "type": "charging", "color": "var(--color-accent-yellow)", "details": "Clean Solar Energy Charging Station: Dynamic on-grid cleanliness monitoring active. Allows guests to locate clean energy power points instantly." },
+            { "id": "node-shuttle", "name": "🚌 Shuttle Pick-up", "x": 88, "y": 78, "type": "shuttle", "color": "var(--color-accent-pink)", "details": "Shuttle Transit Hub: Low-emission shuttle vehicles depart to main transit links when at full capacity during peak times." },
+            { "id": "node-headset", "name": "🎧 Audio Headset Pick Up", "x": 12, "y": 48, "type": "audio", "color": "var(--color-accent-white)", "details": "Assistive Hearing Desk: Collect dynamic audio commentary headsets for the APAC cricket match. Loop services active." },
+            { "id": "node-toilet", "name": "♿ Restrooms", "x": 62, "y": 22, "type": "toilet", "color": "var(--color-accent-cyan)", "details": "Universal Restroom Facility: Level grade ramped access, auto sliding doors, and water-conserving sensor taps." },
+            { "id": "node-help", "name": "ℹ️ Information & Help Desk", "x": 32, "y": 15, "type": "helpdesk", "color": "var(--color-accent-purple)", "details": "Venue Support Center: Live team support for physical routing, translation assistance, and general inquiries." },
+            { "id": "node-food", "name": "🍎 Food Kiosk", "x": 78, "y": 38, "type": "food", "color": "#15803d", "details": "Plaza Food Kiosk: Organic and vegan concessions, plastic-free reusable cup drop points, and contactless payment." },
+            { "id": "node-main-venue", "name": "Main Venue Zone", "x": 50, "y": 50, "type": "venue", "color": "#059669", "details": "Main Venue Zone: The primary stadium field hosting cricket match play and main athletics." }
         ]
     }
 
@@ -70,8 +74,11 @@ def save_config(config: EventConfig):
     os.makedirs(os.path.dirname(CONFIG_FILE), exist_ok=True)
     with open(CONFIG_FILE, "w") as f:
         json.dump(config.model_dump(), f, indent=2)
-    log_event("INFO", "Backend", "save_config", "Event configuration persisted successfully.")
     return {"status": "success"}
+
+@router.get("/credentials")
+def handle_get_credentials():
+    return get_credentials()
 
 @router.post("/credentials")
 def handle_save_credentials(creds: CredentialsConfig):
@@ -84,7 +91,6 @@ def handle_save_credentials(creds: CredentialsConfig):
             if creds.apiMode == "ai_studio":
                 if not creds.apiKey:
                     return {"status": "error", "message": "API Key is required for Google AI Studio mode."}
-                os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "False"
                 test_client = genai.Client(api_key=creds.apiKey)
             else: # vertex_ai
                 # Override env variables to check client

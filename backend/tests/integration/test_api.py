@@ -59,4 +59,3 @@ def test_handle_upload(mock_add_doc, client):
     assert response.status_code == 200
     assert "success" in response.json()["status"]
     mock_add_doc.assert_called_once()
-
