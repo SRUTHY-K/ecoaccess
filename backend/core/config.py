@@ -107,7 +107,7 @@ class DynamicClientProxy:
     def __getattr__(self, name):
         real_client = get_genai_client()
         if not real_client:
-            raise ValueError("Running in local mock simulation mode (No credentials configured)")
+            raise AttributeError("Running in local mock simulation mode (No credentials configured)")
         return getattr(real_client, name)
 
 # Initialize and expose the shared GenAI Client proxy
