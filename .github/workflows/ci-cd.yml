@@ -158,6 +158,14 @@ jobs:
             --min-instances=0
             --max-instances=3
             --port=8080
+            --network=default
+            --subnet=default
+          env_vars: |
+            DB_HOST=10.25.107.2
+            DB_USER=postgres
+            DB_PASSWORD=ecoaccess-db-pass
+            DB_NAME=postgres
+            DB_PORT=5432
 
       # ── Output URL ──
       - name: Show deployed URL
