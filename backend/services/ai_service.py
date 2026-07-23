@@ -29,6 +29,9 @@ def translate_and_analyze_feedback(feedback_text: str) -> dict:
         return json.loads(response.text)
     except Exception as e:
         print(f"Translation error: {e}")
+        from core.config import get_credentials
+        if get_credentials().get("apiMode") != "mock":
+            raise e
         return {
             "translation": feedback_text,
             "sentiment": "neutral",
@@ -84,6 +87,9 @@ def chat_copilot(query: str, system_context: str) -> dict:
         }
     except Exception as e:
         print(f"Chat error: {e}")
+        from core.config import get_credentials
+        if get_credentials().get("apiMode") != "mock":
+            raise e
         query_lower = query.lower()
         
         # Free Mock Knowledge Base (Backend Fallback)
@@ -222,6 +228,9 @@ def detect_waste_gemini(image_bytes: bytes, mime_type: str) -> dict:
         return json.loads(response.text)
     except Exception as e:
         print(f"Gemini vision error: {e}")
+        from core.config import get_credentials
+        if get_credentials().get("apiMode") != "mock":
+            raise e
         # Default realistic fallback simulating a full, contaminated bin in mock mode
         return {
             "contaminationDetected": True,

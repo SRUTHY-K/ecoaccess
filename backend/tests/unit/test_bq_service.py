@@ -13,8 +13,10 @@ def test_predict_carbon_emissions_bq_success(mock_bq_client_class):
     val = predict_carbon_emissions_bq(50, 60, 40, 50000)
     assert val == 12345.6
 
+@patch("core.config.get_credentials")
 @patch("services.bq_service.bigquery.Client")
-def test_predict_carbon_emissions_bq_fallback(mock_bq_client_class):
+def test_predict_carbon_emissions_bq_fallback(mock_bq_client_class, mock_get_credentials):
+    mock_get_credentials.return_value = {"apiMode": "mock"}
     # Triggers exception on Client creation, running fallback formula
     mock_bq_client_class.side_effect = Exception("BigQuery client initialization failed")
     # base = 86000 - 0.5*20000 - 0.6*35000 - 0.4*8000 = 86000 - 10000 - 21000 - 3200 = 51800.0
@@ -35,8 +37,10 @@ def test_forecast_energy_demand_bq_success(mock_bq_client_class):
     assert val[0]["time"] == "12:00"
     assert val[0]["value"] == 750.5
 
+@patch("core.config.get_credentials")
 @patch("services.bq_service.bigquery.Client")
-def test_forecast_energy_demand_bq_fallback(mock_bq_client_class):
+def test_forecast_energy_demand_bq_fallback(mock_bq_client_class, mock_get_credentials):
+    mock_get_credentials.return_value = {"apiMode": "mock"}
     # Triggers exception on Client creation, running mock fallback values
     mock_bq_client_class.side_effect = Exception("BigQuery client initialization failed")
     val = forecast_energy_demand_bq()
