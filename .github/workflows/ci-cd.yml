@@ -139,7 +139,6 @@ jobs:
         run: |
           gcloud builds submit \
             --tag "${{ env.IMAGE }}:${{ github.sha }}" \
-            --tag "${{ env.IMAGE }}:latest" \
             --project "${{ secrets.GCP_PROJECT_ID }}"
 
       # ── Deploy to Cloud Run ──
