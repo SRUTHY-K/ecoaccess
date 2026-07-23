@@ -144,6 +144,25 @@ export default function BigQueryML() {
           <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
             {t.scopeDesc}
           </div>
+          {/* BQ Input Parameters */}
+          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.35rem' }}>
+            {[
+              { label: 'Renewables', val: `${renewablesShare}%`, color: 'var(--color-accent-emerald)' },
+              { label: 'Transit Inclusivity', val: `${transitInclusivity}%`, color: 'var(--color-accent-cyan)' },
+              { label: 'Attendance', val: '75,000', color: 'var(--color-accent-orange)' },
+            ].map(p => (
+              <span key={p.label} style={{
+                fontSize: '0.68rem',
+                padding: '0.15rem 0.45rem',
+                borderRadius: '4px',
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.08)'
+              }}>
+                <span style={{ color: 'var(--color-text-muted)' }}>{p.label}: </span>
+                <span style={{ color: p.color, fontWeight: '700' }}>{p.val}</span>
+              </span>
+            ))}
+          </div>
         </div>
 
         {/* SECTION 2: RESOURCE UTILIZATION RATE & SOLAR ENERGY FORECAST (MOVED UP) */}
@@ -277,6 +296,32 @@ export default function BigQueryML() {
               <line x1="20" y1="25" x2={chartWidth - 20} y2="25" className="arima-chart-grid" />
               <line x1="20" y1={chartHeight / 2} x2={chartWidth - 20} y2={chartHeight / 2} className="arima-chart-grid" />
               <line x1="20" y1={chartHeight - 25} x2={chartWidth - 20} y2={chartHeight - 25} className="arima-chart-grid" />
+
+              {/* Fossil backup activation threshold at 800 kW */}
+              {(() => {
+                const thresholdY = chartHeight - 25 - (800 / maxVal) * (chartHeight - 50);
+                return (
+                  <g>
+                    <line
+                      x1="20" y1={thresholdY}
+                      x2={chartWidth - 20} y2={thresholdY}
+                      stroke="var(--color-accent-red)"
+                      strokeWidth="1.5"
+                      strokeDasharray="5,3"
+                      opacity="0.75"
+                    />
+                    <text
+                      x={chartWidth - 22} y={thresholdY - 3}
+                      fill="var(--color-accent-red)"
+                      fontSize="6"
+                      textAnchor="end"
+                      fontWeight="bold"
+                    >
+                      800kW — Fossil Backup Threshold
+                    </text>
+                  </g>
+                );
+              })()}
 
               {/* Area path */}
               {areaPath && <path d={areaPath} className="arima-chart-area" />}

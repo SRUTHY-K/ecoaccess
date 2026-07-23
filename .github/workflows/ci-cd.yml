@@ -82,10 +82,8 @@ jobs:
   deploy:
     name: Deploy to Cloud Run
     needs: ci
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
-    # Required for Workload Identity Federation (OIDC token)
     permissions:
       contents: read
       id-token: write
@@ -117,11 +115,23 @@ jobs:
         with:
           workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
           service_account: ${{ secrets.GCP_SA_EMAIL }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
 
       # ── Set up gcloud CLI ──
       - name: Set up Cloud SDK
         if: steps.check-secrets.outputs.skip != 'true'
         uses: google-github-actions/setup-gcloud@v2
+
+      # ── Create Artifact Registry Repo if not exists ──
+      - name: Create Artifact Registry Repository
+        if: steps.check-secrets.outputs.skip != 'true'
+        run: |
+          gcloud artifacts repositories create ecoaccess \
+            --repository-format=docker \
+            --location="${{ env.REGION }}" \
+            --description="EcoAccess Docker Repository" \
+            --project="${{ secrets.GCP_PROJECT_ID }}" \
+            || true
 
       # ── Build & Push Docker Image ──
       - name: Build and push container image
@@ -129,15 +139,16 @@ jobs:
         run: |
           gcloud builds submit \
             --tag "${{ env.IMAGE }}:${{ github.sha }}" \
-            --tag "${{ env.IMAGE }}:latest" \
             --project "${{ secrets.GCP_PROJECT_ID }}"
 
       # ── Deploy to Cloud Run ──
       - name: Deploy to Cloud Run
+        id: deploy
         if: steps.check-secrets.outputs.skip != 'true'
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: ${{ env.SERVICE_NAME }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
           region: ${{ env.REGION }}
           image: ${{ env.IMAGE }}:${{ github.sha }}
           flags: |
@@ -152,4 +163,4 @@ jobs:
       - name: Show deployed URL
         if: steps.check-secrets.outputs.skip != 'true'
         run: |
-          echo "✅ Deployed to: https://${{ env.SERVICE_NAME }}-${{ secrets.GCP_PROJECT_ID }}.run.app"
+          echo "✅ Deployed to: ${{ steps.deploy.outputs.url }}"
