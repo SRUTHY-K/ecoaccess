@@ -86,6 +86,7 @@ jobs:
 
     permissions:
       contents: read
+      id-token: write
 
     env:
       SERVICE_NAME: ecoaccess
@@ -112,7 +113,8 @@ jobs:
         if: steps.check-secrets.outputs.skip != 'true'
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
 
       # ── Set up gcloud CLI ──
       - name: Set up Cloud SDK
