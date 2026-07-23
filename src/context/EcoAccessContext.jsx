@@ -429,7 +429,7 @@ export const EcoAccessProvider = ({ children }) => {
   const [demoStep, setDemoStep] = useState(1);
   const [geminiBrief, setGeminiBrief] = useState("");
 
-  const [apiMode, setApiMode] = useState('mock');
+  const [apiMode, setApiMode] = useState('vertex_ai');
   const [apiKey, setApiKey] = useState('');
   const [gcpProjectId, setGcpProjectId] = useState('');
   const [gcpLocation, setGcpLocation] = useState('us-central1');

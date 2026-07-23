@@ -17,6 +17,9 @@ def predict_carbon_emissions_bq(renewables: int, transit: int, recycling: int, a
             return round(results[0]["predicted_carbon_footprint"], 1)
     except Exception as e:
         print(f"BigQuery ML predict error: {e}")
+        from core.config import get_credentials
+        if get_credentials().get("apiMode") != "mock":
+            raise e
     # Local fallback formula matching the ML coefficient
     base = 86000 - (renewables / 100.0) * 20000 - (transit / 100.0) * 35000 - (recycling / 100.0) * 8000
     return round(base, 1)
@@ -52,6 +55,9 @@ def forecast_energy_demand_bq() -> list[dict]:
         ]
     except Exception as e:
         print(f"BigQuery ML forecast error: {e}")
+        from core.config import get_credentials
+        if get_credentials().get("apiMode") != "mock":
+            raise e
     # Return mock time series if offline
     return [
         {"time": "18:00", "value": 680.0},
