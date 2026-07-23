@@ -134,6 +134,7 @@ jobs:
 
       # ── Deploy to Cloud Run ──
       - name: Deploy to Cloud Run
+        id: deploy
         if: steps.check-secrets.outputs.skip != 'true'
         uses: google-github-actions/deploy-cloudrun@v2
         with:
@@ -152,4 +153,4 @@ jobs:
       - name: Show deployed URL
         if: steps.check-secrets.outputs.skip != 'true'
         run: |
-          echo "✅ Deployed to: https://${{ env.SERVICE_NAME }}-${{ secrets.GCP_PROJECT_ID }}.run.app"
+          echo "✅ Deployed to: ${{ steps.deploy.outputs.url }}"
