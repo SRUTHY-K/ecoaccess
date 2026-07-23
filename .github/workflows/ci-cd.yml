@@ -82,7 +82,6 @@ jobs:
   deploy:
     name: Deploy to Cloud Run
     needs: ci
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
 
     permissions:
