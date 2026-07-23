@@ -1,0 +1,155 @@
+# ──────────────────────────────────────────────────────────────
+# EcoAccess Command Center — CI/CD Pipeline
+# ──────────────────────────────────────────────────────────────
+# CI  → runs on every push & PR (pytest + vite build check)
+# CD  → runs on push to main only, after CI passes
+#        (Docker build → Artifact Registry → Cloud Run)
+# ──────────────────────────────────────────────────────────────
+
+name: EcoAccess CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel redundant runs on the same PR / branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# ─── JOB 1: Continuous Integration ───────────────────────────
+jobs:
+  ci:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+        node-version: ["20"]
+
+    steps:
+      # ── Checkout ──
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Python Setup ──
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install pytest httpx
+
+      # ── Backend Tests ──
+      - name: Run backend unit tests
+        env:
+          PYTHONPATH: backend
+          GOOGLE_GENAI_API_KEY: "test-placeholder"
+        run: |
+          pytest backend/tests/unit/ -v --tb=short
+
+      - name: Run backend integration tests
+        env:
+          PYTHONPATH: backend
+          GOOGLE_GENAI_API_KEY: "test-placeholder"
+        run: |
+          pytest backend/tests/integration/ -v --tb=short
+
+      # ── Node.js Setup ──
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      # ── Frontend Build Check ──
+      - name: Verify frontend builds
+        run: npm run build
+
+  # ─── JOB 2: Deploy to Cloud Run ─────────────────────────────
+  deploy:
+    name: Deploy to Cloud Run
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    # Required for Workload Identity Federation (OIDC token)
+    permissions:
+      contents: read
+      id-token: write
+
+    env:
+      SERVICE_NAME: ecoaccess
+      REGION: ${{ secrets.GCP_REGION || 'asia-south1' }}
+      IMAGE: ${{ secrets.GCP_REGION || 'asia-south1' }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ecoaccess/ecoaccess
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Skip deploy if secrets are not configured ──
+      - name: Check deployment secrets
+        id: check-secrets
+        run: |
+          if [ -z "${{ secrets.GCP_PROJECT_ID }}" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "⚠️  GCP_PROJECT_ID secret not set — skipping deployment."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── Authenticate to Google Cloud ──
+      - name: Authenticate to Google Cloud
+        if: steps.check-secrets.outputs.skip != 'true'
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+
+      # ── Set up gcloud CLI ──
+      - name: Set up Cloud SDK
+        if: steps.check-secrets.outputs.skip != 'true'
+        uses: google-github-actions/setup-gcloud@v2
+
+      # ── Build & Push Docker Image ──
+      - name: Build and push container image
+        if: steps.check-secrets.outputs.skip != 'true'
+        run: |
+          gcloud builds submit \
+            --tag "${{ env.IMAGE }}:${{ github.sha }}" \
+            --tag "${{ env.IMAGE }}:latest" \
+            --project "${{ secrets.GCP_PROJECT_ID }}"
+
+      # ── Deploy to Cloud Run ──
+      - name: Deploy to Cloud Run
+        if: steps.check-secrets.outputs.skip != 'true'
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.REGION }}
+          image: ${{ env.IMAGE }}:${{ github.sha }}
+          flags: |
+            --allow-unauthenticated
+            --memory=512Mi
+            --cpu=1
+            --min-instances=0
+            --max-instances=3
+            --port=8080
+
+      # ── Output URL ──
+      - name: Show deployed URL
+        if: steps.check-secrets.outputs.skip != 'true'
+        run: |
+          echo "✅ Deployed to: https://${{ env.SERVICE_NAME }}-${{ secrets.GCP_PROJECT_ID }}.run.app"

@@ -26,12 +26,11 @@ dist-ssr
 # Local environment variables
 .env
 
-# Python caches
+# Python caches & virtualenvs
 __pycache__/
 *.pyc
 .pytest_cache/
-.venv
+.venv/
+venv/
 
-# Local credentials config
-data
 
