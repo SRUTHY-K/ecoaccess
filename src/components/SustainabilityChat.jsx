@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useEcoAccess } from '../context/EcoAccessContext';
-import { Cpu, Send, MessageSquare, Info, Shield, HelpCircle, Volume2, Wifi, Zap } from 'lucide-react';
+import { Cpu, Send, MessageSquare, Info, Shield, HelpCircle, Volume2, Wifi, Zap, Loader2 } from 'lucide-react';
 
 const getApiUrl = (path) => {
   if (import.meta.env.PROD) {
@@ -667,6 +667,38 @@ export default function SustainabilityChat() {
                 </div>
               );
             })}
+
+            {/* Animated Typing Loader Indicator */}
+            {isTyping && (
+              <div 
+                className="chat-bubble ai animate-slide-up" 
+                style={{ 
+                  marginBottom: '0.5rem', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.6rem', 
+                  background: portalRole === 'attendee' ? 'rgba(16, 185, 129, 0.08)' : 'rgba(99, 102, 241, 0.08)', 
+                  border: portalRole === 'attendee' ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(99, 102, 241, 0.3)',
+                  padding: '0.6rem 0.85rem'
+                }}
+              >
+                <Loader2 
+                  size={16} 
+                  className="animate-spin" 
+                  style={{ color: portalRole === 'attendee' ? 'var(--color-accent-emerald)' : 'var(--color-accent-indigo)' }} 
+                />
+                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', fontStyle: 'italic', fontWeight: '500' }}>
+                  {portalRole === 'attendee' 
+                    ? (t.thinkingAttendee || "Say-Bo is analyzing venue maps & policies...") 
+                    : (t.thinkingManager || "EcoAccess Co-Pilot is querying Gemini 2.5 & pgvector RAG...")}
+                </span>
+                <div style={{ display: 'inline-flex', gap: '4px', marginLeft: 'auto', alignItems: 'center' }}>
+                  <span className="typing-dot" style={{ background: portalRole === 'attendee' ? 'var(--color-accent-emerald)' : 'var(--color-accent-indigo)' }}></span>
+                  <span className="typing-dot" style={{ background: 'var(--color-accent-cyan)' }}></span>
+                  <span className="typing-dot" style={{ background: 'var(--color-accent-pink)' }}></span>
+                </div>
+              </div>
+            )}
 
             {/* Interactive Satisfaction Survey Card (Appears after all 5 star rating choices are selected) */}
             {portalRole === 'attendee' && Boolean(userChoices?.dietary && userChoices?.transport && userChoices?.waste && userChoices?.reusable && userChoices?.sanitizer) && (
