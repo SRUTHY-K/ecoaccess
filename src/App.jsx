@@ -139,9 +139,7 @@ function DashboardContent() {
                 </div>
 
                 {/* Merged Knowledge Assistant Module */}
-                <div id="knowledge-assistant-section">
-                  <ProductConfigurator />
-                </div>
+                <ProductConfigurator />
               </>
             )}
           </div>
