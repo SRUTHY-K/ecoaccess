@@ -347,7 +347,7 @@ export default function InteractiveMap() {
         >
           {activeNodes.filter(n => n.id !== 'node-1').map(targetNode => {
             const centerNode = activeNodes.find(n => n.id === 'node-1') || { x: 50, y: 50 };
-            const lineColor = mapOverlayMode === 'carbon' ? 'rgba(239, 68, 68, 0.85)' : 'rgba(6, 182, 212, 0.85)';
+            const lineColor = mapOverlayMode === 'carbon' ? 'rgba(239, 68, 68, 0.5)' : 'rgba(6, 182, 212, 0.5)';
             return (
               <line 
                 key={`line-${targetNode.id}`}
@@ -356,8 +356,8 @@ export default function InteractiveMap() {
                 x2={targetNode.x}
                 y2={targetNode.y}
                 stroke={lineColor}
-                strokeWidth="0.8"
-                strokeDasharray="2.5, 2"
+                strokeWidth="0.35"
+                strokeDasharray="1, 1"
               />
             );
           })}
