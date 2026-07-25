@@ -339,20 +339,29 @@ export default function InteractiveMap() {
 
         <div className="map-grid-layer"></div>
         
-        {/* Connections */}
-        {mapOverlayMode === 'carbon' ? (
-          <>
-            <div className="map-connection" style={{ left: '50%', top: '50%', width: '31%', transform: 'rotate(27deg)', borderTop: '2px dashed rgba(239, 68, 68, 0.4)' }}></div>
-            <div className="map-connection" style={{ left: '50%', top: '50%', width: '23%', transform: 'rotate(130deg)', borderTop: '2px dashed rgba(239, 68, 68, 0.4)' }}></div>
-            <div className="map-connection" style={{ left: '50%', top: '50%', width: '32%', transform: 'rotate(-44deg)', borderTop: '2px dashed rgba(239, 68, 68, 0.4)' }}></div>
-          </>
-        ) : (
-          <>
-            <div className="map-connection" style={{ left: '50%', top: '50%', width: '31%', transform: 'rotate(27deg)', borderTop: '2px dashed rgba(6, 182, 212, 0.4)' }}></div>
-            <div className="map-connection" style={{ left: '50%', top: '50%', width: '23%', transform: 'rotate(130deg)', borderTop: '2px dashed rgba(6, 182, 212, 0.4)' }}></div>
-            <div className="map-connection" style={{ left: '50%', top: '50%', width: '32%', transform: 'rotate(-44deg)', borderTop: '2px dashed rgba(6, 182, 212, 0.4)' }}></div>
-          </>
-        )}
+        {/* SVG Node Connections (Pixel-perfect vector lines) */}
+        <svg 
+          viewBox="0 0 100 100" 
+          preserveAspectRatio="none"
+          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 3 }}
+        >
+          {activeNodes.filter(n => n.id !== 'node-1').map(targetNode => {
+            const centerNode = activeNodes.find(n => n.id === 'node-1') || { x: 50, y: 50 };
+            const lineColor = mapOverlayMode === 'carbon' ? 'rgba(239, 68, 68, 0.6)' : 'rgba(6, 182, 212, 0.6)';
+            return (
+              <line 
+                key={`line-${targetNode.id}`}
+                x1={centerNode.x}
+                y1={centerNode.y}
+                x2={targetNode.x}
+                y2={targetNode.y}
+                stroke={lineColor}
+                strokeWidth="0.4"
+                strokeDasharray="1.2, 1.2"
+              />
+            );
+          })}
+        </svg>
 
         {/* Map Nodes Render */}
         {activeNodes.map((node) => {
