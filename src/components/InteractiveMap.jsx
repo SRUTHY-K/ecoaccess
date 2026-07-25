@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useEcoAccess } from '../context/EcoAccessContext';
 import { Compass, Eye, EyeOff, ShieldAlert, CheckCircle2, Zap } from 'lucide-react';
+import { VENUE_PRESETS } from '../data/venuePresets';
 
 const mapTranslations = {
   en: {
@@ -252,6 +253,9 @@ const compassDict = {
 export default function InteractiveMap() {
   const {
     mapNodes,
+    setMapNodes,
+    setEventTitle,
+    setEventSubtitle,
     mapOverlayMode,
     setMapOverlayMode,
     incidents,
@@ -283,12 +287,30 @@ export default function InteractiveMap() {
 
   return (
     <div className="glass-panel" style={{ position: 'relative' }}>
-      <div className="panel-header">
+      <div className="panel-header" style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
         <h2 className="panel-title">
           <Compass size={18} style={{color: 'var(--color-accent-cyan)'}} />
           {portalRole === 'attendee' ? t.stadiumMap : t.sensorGrid}
         </h2>
-        <div style={{display: 'flex', gap: '0.5rem', alignItems: 'center'}}>
+        <div style={{display: 'flex', gap: '0.5rem', alignItems: 'center', marginLeft: 'auto'}}>
+          <select 
+            className="chat-input"
+            style={{ padding: '0.2rem 0.5rem', fontSize: '0.72rem', background: '#0b1329', color: '#fff', border: '1px solid var(--border-color)', borderRadius: '4px', cursor: 'pointer' }}
+            title="Switch Global Venue Presets"
+            onChange={(e) => {
+              const found = VENUE_PRESETS.find(p => p.id === e.target.value);
+              if (found) {
+                setEventTitle(found.title);
+                setEventSubtitle(found.subtitle);
+                setMapNodes(found.nodes);
+              }
+            }}
+          >
+            {VENUE_PRESETS.map(p => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+
           <button 
             className="button secondary"
             style={{padding: '0.25rem 0.5rem', fontSize: '0.75rem', border: 'none', display: 'flex', alignItems: 'center', gap: '0.25rem'}}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useEcoAccess } from '../context/EcoAccessContext';
 import { Settings, Check } from 'lucide-react';
+import { VENUE_PRESETS } from '../data/venuePresets';
 
 const cfgTranslations = {
   en: {
@@ -305,6 +306,28 @@ export default function ProductConfigurator() {
           <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--color-text-secondary)', textTransform: 'uppercase' }}>
             {t.section1}
           </span>
+
+          <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <label className="form-label" style={{ fontSize: '0.8rem', color: 'var(--color-accent-cyan)', fontWeight: 'bold' }}>
+              📍 Load Global Venue Preset:
+            </label>
+            <select
+              className="chat-input"
+              style={{ background: '#0b1329', border: '1px solid var(--color-accent-cyan)', borderRadius: '6px', padding: '0.5rem', color: '#fff', fontSize: '0.85rem' }}
+              onChange={(e) => {
+                const found = VENUE_PRESETS.find(p => p.id === e.target.value);
+                if (found) {
+                  setEventTitle(found.title);
+                  setEventSubtitle(found.subtitle);
+                  setMapNodes(found.nodes);
+                }
+              }}
+            >
+              {VENUE_PRESETS.map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
           
           <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
             <label className="form-label" style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>{t.titleLabel}</label>
