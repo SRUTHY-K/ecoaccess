@@ -25,6 +25,7 @@ dist-ssr
 
 # Local environment variables
 .env
+backend/data/credentials_config.json
 
 # Python caches & virtualenvs
 __pycache__/

@@ -36,7 +36,7 @@ def load_dotenv():
 load_dotenv()
 
 # Project Configuration
-PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT", "river-sonar-497916-s5")
+PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT", "your-gcp-project-id")
 LOCATION = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
 BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG_FILE = os.path.join(BACKEND_DIR, "data", "event_config.json")
@@ -60,7 +60,7 @@ def get_credentials():
     # Default fallbacks
     mode = "mock"
     use_vertex = os.environ.get("GOOGLE_GENAI_USE_VERTEXAI", "True")
-    project = os.environ.get("GOOGLE_CLOUD_PROJECT", "river-sonar-497916-s5")
+    project = os.environ.get("GOOGLE_CLOUD_PROJECT", "your-gcp-project-id")
     location = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
     api_key = os.environ.get("GEMINI_API_KEY", "")
     
