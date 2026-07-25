@@ -198,11 +198,11 @@ export const EcoAccessProvider = ({ children }) => {
   
   // Dynamic Product Settings & Multilingual Defaults
   const eventTitleTranslations = {
-    en: "EcoAccess Command Center",
-    es: "Centro de Control EcoAccess",
-    ja: "EcoAccess 総合コマンドセンター",
-    zh: "EcoAccess 全球场馆指挥中心",
-    de: "EcoAccess Command Center"
+    en: "APAC Cricket Stadium Management Console",
+    es: "Consola de Gestión del Estadio de Cricket APAC",
+    ja: "APACクリケットスタジアム管理コンソール",
+    zh: "APAC 板球体育场综合管理控制台",
+    de: "APAC Cricket Stadion Management-Konsole"
   };
 
   const eventSubtitleTranslations = {
@@ -1314,7 +1314,9 @@ export const EcoAccessProvider = ({ children }) => {
     }
   };
 
-  const computedEventTitle = rawEventTitle === 'EcoAccess Command Center' || Object.values(eventTitleTranslations).includes(rawEventTitle)
+  const isDefaultTitle = !rawEventTitle || rawEventTitle === 'EcoAccess Command Center' || rawEventTitle === 'APAC Cricket Stadium Management Console' || rawEventTitle === 'APAC Cricket Stadium Navigator' || Object.values(eventTitleTranslations).includes(rawEventTitle);
+
+  const computedEventTitle = isDefaultTitle
     ? (eventTitleTranslations[appLanguage] || eventTitleTranslations.en)
     : rawEventTitle;
 
