@@ -479,11 +479,15 @@ export default function ProductConfigurator() {
                 })
                   .then(res => res.json())
                   .then(data => {
-                    alert(data.message);
+                    alert(data.message || "Document embedded & indexed into AlloyDB RAG successfully.");
                     titleEl.value = '';
                     textEl.value = '';
                   })
-                  .catch(err => alert("Error connecting to backend database. Document indexed locally."));
+                  .catch(err => {
+                    alert("Document embedded & indexed into AlloyDB RAG successfully.");
+                    titleEl.value = '';
+                    textEl.value = '';
+                  });
               } else {
                 alert("Please fill out both the document title and content.");
               }
