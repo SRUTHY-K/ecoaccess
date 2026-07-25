@@ -263,6 +263,7 @@ export default function InteractiveMap() {
 
   const [showLabels, setShowLabels] = useState(true);
   const [activeNode, setActiveNode] = useState(null);
+  const [dispatchingId, setDispatchingId] = useState(null);
 
   const activeNodes = mapNodes;
 
@@ -455,10 +456,17 @@ export default function InteractiveMap() {
                   {activeIncident.status === 'unresolved' && (
                     <button 
                       className="button success" 
-                      style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem', border: 'none', margin: 0 }}
-                      onClick={() => handleDispatch(activeIncident.id)}
+                      disabled={dispatchingId === activeIncident.id}
+                      style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem', border: 'none', margin: 0, opacity: dispatchingId === activeIncident.id ? 0.7 : 1, cursor: dispatchingId === activeIncident.id ? 'not-allowed' : 'pointer' }}
+                      onClick={() => {
+                        setDispatchingId(activeIncident.id);
+                        setTimeout(() => {
+                          handleDispatch(activeIncident.id);
+                          setDispatchingId(null);
+                        }, 700);
+                      }}
                     >
-                      {t.dispatchCrew}
+                      {dispatchingId === activeIncident.id ? '⏳ Dispatching Crew...' : t.dispatchCrew}
                     </button>
                   )}
                 </div>

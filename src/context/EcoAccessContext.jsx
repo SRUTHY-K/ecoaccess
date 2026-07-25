@@ -1039,7 +1039,10 @@ export const EcoAccessProvider = ({ children }) => {
   };
 
   // Real-time Spanish/Japanese translation call
+  const [translatingIds, setTranslatingIds] = useState({});
+
   const translateFeedback = (id, text) => {
+    setTranslatingIds(prev => ({ ...prev, [id]: true }));
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 1200);
 
@@ -1052,6 +1055,7 @@ export const EcoAccessProvider = ({ children }) => {
       .then(res => res.json())
       .then(data => {
         clearTimeout(timeoutId);
+        setTranslatingIds(prev => ({ ...prev, [id]: false }));
         setSpectatorFeedbacks(prev => prev.map(feed => {
           if (feed.id === id) {
             return {
@@ -1067,6 +1071,7 @@ export const EcoAccessProvider = ({ children }) => {
       })
       .catch(err => {
         clearTimeout(timeoutId);
+        setTranslatingIds(prev => ({ ...prev, [id]: false }));
         console.log("Translation service offline, using mock.");
       });
   };
@@ -1369,6 +1374,7 @@ export const EcoAccessProvider = ({ children }) => {
       togglePeakShaving,
       handleChatSubmit,
       translateFeedback,
+      translatingIds,
       handleTextToSpeech,
       
       // Dual Portal upgrades states & handlers

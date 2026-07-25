@@ -206,6 +206,7 @@ export default function SustainabilityChat() {
     handleChatSubmit,
     spectatorFeedbacks,
     translateFeedback,
+    translatingIds,
     portalRole,
     userChoices,
     bluetoothLive,
@@ -903,14 +904,25 @@ export default function SustainabilityChat() {
                       <span style={{fontSize: '0.7rem', fontWeight: '700', color: 'var(--color-accent-indigo)', display: 'block', marginBottom: '0.25rem'}}>AI English Translation</span>
                       <span style={{fontSize: '0.8rem', color: 'var(--color-text-primary)'}}>{rep.translation}</span>
                     </div>
-                  ) : (
+                  ) : rep.language !== 'English' ? (
                     <button 
                       className="button primary" 
-                      style={{padding: '0.25rem 0.5rem', fontSize: '0.7rem', marginTop: '0.25rem', minWidth: 'auto', border: 'none'}}
+                      disabled={Boolean(translatingIds && translatingIds[rep.id])}
+                      style={{
+                        padding: '0.25rem 0.5rem', 
+                        fontSize: '0.7rem', 
+                        marginTop: '0.25rem', 
+                        minWidth: 'auto', 
+                        border: 'none',
+                        opacity: (translatingIds && translatingIds[rep.id]) ? 0.7 : 1,
+                        cursor: (translatingIds && translatingIds[rep.id]) ? 'not-allowed' : 'pointer'
+                      }}
                       onClick={() => translateFeedback(rep.id, rep.text)}
                     >
-                      {t.translateGemini}
+                      {translatingIds && translatingIds[rep.id] ? '⏳ Translating with Gemini...' : t.translateGemini}
                     </button>
+                  ) : (
+                    <span style={{fontSize: '0.65rem', color: 'var(--color-accent-emerald)', display: 'inline-block', marginTop: '0.25rem'}}>✓ Native English Submission</span>
                   )}
                   
                   <div className="report-bottom" style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '0.5rem'}}>

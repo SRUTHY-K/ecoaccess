@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useEcoAccess } from '../context/EcoAccessContext';
 import { Settings, Check } from 'lucide-react';
 
@@ -278,6 +278,9 @@ export default function ProductConfigurator() {
     spectatorCount, setSpectatorCount
   } = useEcoAccess();
 
+  const [isEmbedding, setIsEmbedding] = useState(false);
+  const [isSavingConfig, setIsSavingConfig] = useState(false);
+
   const t = cfgTranslations[appLanguage] || cfgTranslations.en;
 
   return (
@@ -428,10 +431,15 @@ export default function ProductConfigurator() {
           </div>
           <button 
             className="button primary" 
-            style={{ marginTop: '1rem', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', border: 'none' }}
-            onClick={() => persistConfig(eventTitle, eventSubtitle, baseBudget, mapNodes)}
+            disabled={isSavingConfig}
+            style={{ marginTop: '1rem', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', border: 'none', opacity: isSavingConfig ? 0.7 : 1, cursor: isSavingConfig ? 'not-allowed' : 'pointer' }}
+            onClick={() => {
+              setIsSavingConfig(true);
+              persistConfig(eventTitle, eventSubtitle, baseBudget, mapNodes);
+              setTimeout(() => setIsSavingConfig(false), 800);
+            }}
           >
-            <Check size={16} /> {t.savePersistBtn || "Save & Persist Configuration to Google Cloud"}
+            <Check size={16} /> {isSavingConfig ? '⏳ Saving & Persisting Configuration...' : (t.savePersistBtn || "Save & Persist Configuration to Google Cloud")}
           </button>
         </div>
       </div>
@@ -464,11 +472,13 @@ export default function ProductConfigurator() {
           />
           <button 
             className="button success"
-            style={{ alignSelf: 'flex-end', margin: 0, border: 'none' }}
+            disabled={isEmbedding}
+            style={{ alignSelf: 'flex-end', margin: 0, border: 'none', opacity: isEmbedding ? 0.7 : 1, cursor: isEmbedding ? 'not-allowed' : 'pointer' }}
             onClick={() => {
               const titleEl = document.getElementById('rag-doc-title');
               const textEl = document.getElementById('rag-doc-text');
               if (titleEl && titleEl.value.trim() && textEl && textEl.value.trim()) {
+                setIsEmbedding(true);
                 const formData = new FormData();
                 formData.append('title', titleEl.value);
                 formData.append('text', textEl.value);
@@ -479,11 +489,13 @@ export default function ProductConfigurator() {
                 })
                   .then(res => res.json())
                   .then(data => {
+                    setIsEmbedding(false);
                     alert(data.message || "Document embedded & indexed into AlloyDB RAG successfully.");
                     titleEl.value = '';
                     textEl.value = '';
                   })
                   .catch(err => {
+                    setIsEmbedding(false);
                     alert("Document embedded & indexed into AlloyDB RAG successfully.");
                     titleEl.value = '';
                     textEl.value = '';
@@ -493,7 +505,7 @@ export default function ProductConfigurator() {
               }
             }}
           >
-            {t.embedBtn}
+            {isEmbedding ? '⏳ Embedding & Indexing into AlloyDB...' : t.embedBtn}
           </button>
         </div>
       </div>
