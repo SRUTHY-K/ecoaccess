@@ -197,6 +197,8 @@ const chatTranslations = {
 
 export default function SustainabilityChat() {
   const {
+    activeTab,
+    setActiveTab,
     chatInput,
     setChatInput,
     chatMessages,
@@ -206,6 +208,7 @@ export default function SustainabilityChat() {
     handleChatSubmit,
     spectatorFeedbacks,
     translateFeedback,
+    translatingIds,
     portalRole,
     userChoices,
     bluetoothLive,
@@ -589,17 +592,26 @@ export default function SustainabilityChat() {
         
         {/* LEFT: CHATBOT PANEL */}
         <div className="glass-panel chatbot-container" style={{ display: 'flex', flexDirection: 'column', minHeight: '520px' }}>
-          <div className="panel-header">
+          <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 className="panel-title">
               <Cpu size={18} style={{color: portalRole === 'attendee' ? 'var(--color-accent-emerald)' : 'var(--color-accent-indigo)'}} />
               {portalRole === 'attendee' ? t.chatTitleAttendee : t.chatTitleManager}
             </h2>
-            {portalRole === 'attendee' && (
-              <span className="pulse-indicator">
-                <div className="pulse-dot" style={{ backgroundColor: 'var(--color-accent-emerald)' }}></div>
-                <span style={{ fontSize: '0.65rem', fontWeight: 'bold' }}>{t.sayBoActive}</span>
-              </span>
-            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <button 
+                className="button secondary" 
+                style={{ fontSize: '0.7rem', padding: '0.25rem 0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem', border: '1px solid var(--border-color)', borderRadius: '6px', cursor: 'pointer', margin: 0 }}
+                onClick={() => setActiveTab('dashboard')}
+              >
+                🗺️ {portalRole === 'attendee' ? 'Return to Venue Map' : 'Return to Command Center & GIS Map'}
+              </button>
+              {portalRole === 'attendee' && (
+                <span className="pulse-indicator">
+                  <div className="pulse-dot" style={{ backgroundColor: 'var(--color-accent-emerald)' }}></div>
+                  <span style={{ fontSize: '0.65rem', fontWeight: 'bold' }}>{t.sayBoActive}</span>
+                </span>
+              )}
+            </div>
             <div ref={chatEndRef} />
           </div>
 
@@ -903,14 +915,25 @@ export default function SustainabilityChat() {
                       <span style={{fontSize: '0.7rem', fontWeight: '700', color: 'var(--color-accent-indigo)', display: 'block', marginBottom: '0.25rem'}}>AI English Translation</span>
                       <span style={{fontSize: '0.8rem', color: 'var(--color-text-primary)'}}>{rep.translation}</span>
                     </div>
-                  ) : (
+                  ) : rep.language !== 'English' ? (
                     <button 
                       className="button primary" 
-                      style={{padding: '0.25rem 0.5rem', fontSize: '0.7rem', marginTop: '0.25rem', minWidth: 'auto', border: 'none'}}
+                      disabled={Boolean(translatingIds && translatingIds[rep.id])}
+                      style={{
+                        padding: '0.25rem 0.5rem', 
+                        fontSize: '0.7rem', 
+                        marginTop: '0.25rem', 
+                        minWidth: 'auto', 
+                        border: 'none',
+                        opacity: (translatingIds && translatingIds[rep.id]) ? 0.7 : 1,
+                        cursor: (translatingIds && translatingIds[rep.id]) ? 'not-allowed' : 'pointer'
+                      }}
                       onClick={() => translateFeedback(rep.id, rep.text)}
                     >
-                      {t.translateGemini}
+                      {translatingIds && translatingIds[rep.id] ? '⏳ Translating with Gemini...' : t.translateGemini}
                     </button>
+                  ) : (
+                    <span style={{fontSize: '0.65rem', color: 'var(--color-accent-emerald)', display: 'inline-block', marginTop: '0.25rem'}}>✓ Native English Submission</span>
                   )}
                   
                   <div className="report-bottom" style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '0.5rem'}}>

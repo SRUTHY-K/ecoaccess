@@ -1422,7 +1422,7 @@ option:checked {
 
 /* Custom Interactive Map Enhancements */
 .map-canvas-container {
-  overflow: visible !important;
+  overflow: hidden !important;
 }
 
 .map-node-label-badge {

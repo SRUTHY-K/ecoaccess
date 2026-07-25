@@ -198,11 +198,11 @@ export const EcoAccessProvider = ({ children }) => {
   
   // Dynamic Product Settings & Multilingual Defaults
   const eventTitleTranslations = {
-    en: "EcoAccess Command Center",
-    es: "Centro de Control EcoAccess",
-    ja: "EcoAccess 総合コマンドセンター",
-    zh: "EcoAccess 全球场馆指挥中心",
-    de: "EcoAccess Command Center"
+    en: "APAC Cricket Stadium Management Console",
+    es: "Consola de Gestión del Estadio de Cricket APAC",
+    ja: "APACクリケットスタジアム管理コンソール",
+    zh: "APAC 板球体育场综合管理控制台",
+    de: "APAC Cricket Stadion Management-Konsole"
   };
 
   const eventSubtitleTranslations = {
@@ -217,12 +217,22 @@ export const EcoAccessProvider = ({ children }) => {
   const [rawEventSubtitle, setRawEventSubtitle] = useState('Smart Venue Telemetry, Sustainable Operations & Inclusive Decision Hub');
   const [baseBudget, setBaseBudget] = useState(30.0);
   
-  // Custom Dynamic Venue GIS Nodes (Restored original host coordinates)
+  // Custom Dynamic Venue GIS Nodes (Full 14 Checkpoint Grid)
   const [mapNodes, setMapNodes] = useState([
-    { id: 'node-1', name: 'Narendra Modi Stadium — Main Bowl', x: 50, y: 50, type: 'stadium', alert: 'elevator' },
-    { id: 'node-2', name: 'IPL Fan Village — Pavilion End', x: 80, y: 35, type: 'fanzone', alert: 'grid' },
-    { id: 'node-3', name: "Athletes' & Media Centre", x: 30, y: 25, type: 'village', alert: 'none' },
-    { id: 'node-4', name: 'EV Shuttle Hub — Accessible Transport', x: 75, y: 75, type: 'transporthub', alert: 'none' }
+    { id: "node-main-venue", name: "Main Venue Zone", x: 50, y: 50, type: "venue", color: "#059669", details: "Main Venue Zone: The primary stadium field hosting cricket match play and main athletics." },
+    { id: "node-entry", name: "🟢 Main Entrance Gate", x: 10, y: 85, type: "entry", color: "#2dd4bf", details: "Gate 1 Main Entrance: Contextual ticketing, security screening checkpoints, level-grade access corridors." },
+    { id: "node-exit", name: "🔴 Main Exit Gate", x: 90, y: 15, type: "exit", color: "#f43f5e", details: "Gate 8 Main Exit Gate: High-capacity pedestrian outflow corridor with clear directional lighting." },
+    { id: "node-solar", name: "☀️ Solar Charging Station", x: 24, y: 75, type: "charging", color: "var(--color-accent-yellow)", details: "Clean Solar Energy Charging Station: Dynamic on-grid cleanliness monitoring active." },
+    { id: "node-shuttle", name: "🚌 Shuttle Pick-up", x: 88, y: 78, type: "shuttle", color: "var(--color-accent-pink)", details: "Shuttle Transit Hub: Low-emission shuttle vehicles depart to main transit links." },
+    { id: "node-headset", name: "🎧 Audio Headset Pick Up", x: 12, y: 48, type: "audio", color: "var(--color-accent-white)", details: "Assistive Hearing Desk: Collect dynamic audio commentary headsets for the APAC cricket match." },
+    { id: "node-toilet", name: "♿ Restrooms", x: 62, y: 22, type: "toilet", color: "var(--color-accent-cyan)", details: "Universal Restroom Facility: Level grade ramped access, auto sliding doors, and water-conserving sensor taps." },
+    { id: "node-help", name: "ℹ️ Information & Help Desk", x: 32, y: 15, type: "helpdesk", color: "var(--color-accent-purple)", details: "Venue Support Center: Live team support for physical routing, translation assistance." },
+    { id: "node-food", name: "🍎 Food Kiosk", x: 78, y: 38, type: "food", color: "#15803d", details: "Plaza Food Kiosk: Organic and vegan concessions, plastic-free reusable cup drop points." },
+    { id: "node-elevator", name: "🛗 Wheelchair Elevator & Ramp Shaft", x: 42, y: 65, type: "elevator", color: "#3b82f6", details: "Section 104 Elevator & Ramp: Wheelchair vertical lift shaft and step-free incline corridor." },
+    { id: "node-waste", name: "♻️ Smart Waste CCTV Hub", x: 70, y: 62, type: "waste", color: "#10b981", details: "Food Court Bin Station #4: Live Gemini CCTV bin fill-level and contamination monitoring." },
+    { id: "node-water", name: "💧 Water Refill Station", x: 35, y: 35, type: "water", color: "#06b6d4", details: "H2O Refill Bar: Municipal water conservation sensor taps and plastic bottle refill point." },
+    { id: "node-medical", name: "🚑 First Aid & Medical Hub", x: 58, y: 80, type: "medical", color: "#ef4444", details: "Main Concourse Medical Station: Heat-stress triage and rapid response emergency crew dispatch." },
+    { id: "node-bess", name: "🔋 Solar Battery Storage BESS", x: 20, y: 20, type: "bess", color: "#8b5cf6", details: "Grid Substation BESS: 500kWh battery energy storage system for peak power load shaving." }
   ]);
 
   // Accessibility Controls
@@ -1039,7 +1049,10 @@ export const EcoAccessProvider = ({ children }) => {
   };
 
   // Real-time Spanish/Japanese translation call
+  const [translatingIds, setTranslatingIds] = useState({});
+
   const translateFeedback = (id, text) => {
+    setTranslatingIds(prev => ({ ...prev, [id]: true }));
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 1200);
 
@@ -1052,6 +1065,7 @@ export const EcoAccessProvider = ({ children }) => {
       .then(res => res.json())
       .then(data => {
         clearTimeout(timeoutId);
+        setTranslatingIds(prev => ({ ...prev, [id]: false }));
         setSpectatorFeedbacks(prev => prev.map(feed => {
           if (feed.id === id) {
             return {
@@ -1067,6 +1081,7 @@ export const EcoAccessProvider = ({ children }) => {
       })
       .catch(err => {
         clearTimeout(timeoutId);
+        setTranslatingIds(prev => ({ ...prev, [id]: false }));
         console.log("Translation service offline, using mock.");
       });
   };
@@ -1309,7 +1324,9 @@ export const EcoAccessProvider = ({ children }) => {
     }
   };
 
-  const computedEventTitle = rawEventTitle === 'EcoAccess Command Center' || Object.values(eventTitleTranslations).includes(rawEventTitle)
+  const isDefaultTitle = !rawEventTitle || rawEventTitle === 'EcoAccess Command Center' || rawEventTitle === 'APAC Cricket Stadium Management Console' || rawEventTitle === 'APAC Cricket Stadium Navigator' || Object.values(eventTitleTranslations).includes(rawEventTitle);
+
+  const computedEventTitle = isDefaultTitle
     ? (eventTitleTranslations[appLanguage] || eventTitleTranslations.en)
     : rawEventTitle;
 
@@ -1369,6 +1386,7 @@ export const EcoAccessProvider = ({ children }) => {
       togglePeakShaving,
       handleChatSubmit,
       translateFeedback,
+      translatingIds,
       handleTextToSpeech,
       
       // Dual Portal upgrades states & handlers
