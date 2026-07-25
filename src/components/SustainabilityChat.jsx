@@ -197,6 +197,8 @@ const chatTranslations = {
 
 export default function SustainabilityChat() {
   const {
+    activeTab,
+    setActiveTab,
     chatInput,
     setChatInput,
     chatMessages,
@@ -590,17 +592,26 @@ export default function SustainabilityChat() {
         
         {/* LEFT: CHATBOT PANEL */}
         <div className="glass-panel chatbot-container" style={{ display: 'flex', flexDirection: 'column', minHeight: '520px' }}>
-          <div className="panel-header">
+          <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 className="panel-title">
               <Cpu size={18} style={{color: portalRole === 'attendee' ? 'var(--color-accent-emerald)' : 'var(--color-accent-indigo)'}} />
               {portalRole === 'attendee' ? t.chatTitleAttendee : t.chatTitleManager}
             </h2>
-            {portalRole === 'attendee' && (
-              <span className="pulse-indicator">
-                <div className="pulse-dot" style={{ backgroundColor: 'var(--color-accent-emerald)' }}></div>
-                <span style={{ fontSize: '0.65rem', fontWeight: 'bold' }}>{t.sayBoActive}</span>
-              </span>
-            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <button 
+                className="button secondary" 
+                style={{ fontSize: '0.7rem', padding: '0.25rem 0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem', border: '1px solid var(--border-color)', borderRadius: '6px', cursor: 'pointer', margin: 0 }}
+                onClick={() => setActiveTab('dashboard')}
+              >
+                🗺️ {portalRole === 'attendee' ? 'Return to Venue Map' : 'Return to Command Center & GIS Map'}
+              </button>
+              {portalRole === 'attendee' && (
+                <span className="pulse-indicator">
+                  <div className="pulse-dot" style={{ backgroundColor: 'var(--color-accent-emerald)' }}></div>
+                  <span style={{ fontSize: '0.65rem', fontWeight: 'bold' }}>{t.sayBoActive}</span>
+                </span>
+              )}
+            </div>
             <div ref={chatEndRef} />
           </div>
 
