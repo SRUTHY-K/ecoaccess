@@ -68,13 +68,13 @@ const managerTitleTranslations = {
 };
 
 function DashboardContent() {
-  const { activeTab, portalRole, appLanguage, spectatorCount, sidebarCollapsed, setSidebarCollapsed } = useEcoAccess();
+  const { activeTab, portalRole, appLanguage, spectatorCount, sidebarCollapsed, setSidebarCollapsed, eventTitle, eventSubtitle } = useEcoAccess();
 
   const tApp = appTranslations[appLanguage] || appTranslations.en;
   const tMgr = managerTitleTranslations[appLanguage] || managerTitleTranslations.en;
 
-  const currentTitle = portalRole === 'attendee' ? tApp.spectatorPortal : tMgr.title;
-  const currentSubtitle = portalRole === 'attendee' ? tApp.spectatorDesc : tMgr.subtitle;
+  const currentTitle = portalRole === 'attendee' ? tApp.spectatorPortal : (eventTitle || tMgr.title);
+  const currentSubtitle = portalRole === 'attendee' ? tApp.spectatorDesc : (eventSubtitle || tMgr.subtitle);
   const currentStatus = portalRole === 'attendee' ? tApp.attendeeStatus : tApp.managerStatus;
 
   return (
