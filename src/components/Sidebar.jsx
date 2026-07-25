@@ -519,6 +519,21 @@ export default function Sidebar() {
           {portalRole === 'attendee' ? t.sayBoChat : t.sustainabilityChat}
         </button>
 
+        {portalRole === 'manager' && (
+          <button 
+            className="nav-item"
+            onClick={() => {
+              setActiveTab('dashboard');
+              setTimeout(() => {
+                const el = document.getElementById('knowledge-assistant-section');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }, 100);
+            }}
+          >
+            <Settings className="nav-icon" size={18} />
+            {t.knowledgeAssistant || 'Knowledge Assistant'}
+          </button>
+        )}
       </nav>
 
       {/* BLUETOOTH STADIUM BROADCAST PUSH BUTTON */}
