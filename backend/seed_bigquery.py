@@ -3,6 +3,8 @@ import math
 import random
 import os
 import sys
+import io
+import csv
 from google.cloud import bigquery
 
 # Ensure backend directory is in PYTHONPATH
@@ -71,13 +73,27 @@ def seed_bigquery():
         })
 
     try:
-        errors = client.insert_rows_json(telemetry_table_id, telemetry_rows)
-        if not errors:
-            print("Successfully inserted historical event telemetry rows.")
-        else:
-            print(f"Errors inserting telemetry: {errors}")
+        # Write to a CSV string
+        f = io.StringIO()
+        writer = csv.writer(f)
+        # Write header
+        writer.writerow(["renewables_share", "transit_inclusivity", "circular_economy_rate", "spectator_count", "carbon_footprint", "event_status"])
+        for r in telemetry_rows:
+            writer.writerow([r["renewables_share"], r["transit_inclusivity"], r["circular_economy_rate"], r["spectator_count"], r["carbon_footprint"], r["event_status"]])
+        
+        f.seek(0)
+        
+        # Load into BigQuery via Load Job
+        job_config = bigquery.LoadJobConfig(
+            source_format=bigquery.SourceFormat.CSV,
+            skip_leading_rows=1,
+            autodetect=False,
+        )
+        load_job = client.load_table_from_file(f, telemetry_table_id, job_config=job_config)
+        load_job.result()
+        print("Successfully loaded historical event telemetry rows via Load Job.")
     except Exception as e:
-        print(f"Error inserting telemetry rows: {e}")
+        print(f"Error loading telemetry rows: {e}")
 
     # 3. Create venue_power_readings Table
     power_table_id = f"{dataset_id}.venue_power_readings"
@@ -122,20 +138,27 @@ def seed_bigquery():
                 "venue_id": venue
             })
 
-    # Insert power readings in chunks (insert_rows_json has limits on payload size)
-    chunk_size = 500
-    for i in range(0, len(power_rows), chunk_size):
-        chunk = power_rows[i:i+chunk_size]
-        try:
-            errors = client.insert_rows_json(power_table_id, chunk)
-            if errors:
-                print(f"Errors inserting power readings chunk: {errors}")
-                break
-        except Exception as e:
-            print(f"Error inserting power readings: {e}")
-            break
-    else:
-        print(f"Successfully inserted {len(power_rows)} hourly venue power readings.")
+    try:
+        # Write to a CSV string
+        f = io.StringIO()
+        writer = csv.writer(f)
+        writer.writerow(["timestamp", "grid_power_kw", "venue_id"])
+        for r in power_rows:
+            writer.writerow([r["timestamp"], r["grid_power_kw"], r["venue_id"]])
+        
+        f.seek(0)
+        
+        # Load into BigQuery via Load Job
+        job_config = bigquery.LoadJobConfig(
+            source_format=bigquery.SourceFormat.CSV,
+            skip_leading_rows=1,
+            autodetect=False,
+        )
+        load_job = client.load_table_from_file(f, power_table_id, job_config=job_config)
+        load_job.result()
+        print(f"Successfully loaded {len(power_rows)} hourly venue power readings via Load Job.")
+    except Exception as e:
+        print(f"Error loading power readings: {e}")
 
     # 4. Train Model 1: Carbon Emissions Linear Regression
     print("Training Model 1: carbon_prediction_model (Linear Regression)...")

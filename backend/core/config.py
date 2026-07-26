@@ -35,6 +35,20 @@ def load_dotenv():
 # Load .env configurations
 load_dotenv()
 
+# Check for GCP credentials passed via environment variable (e.g. in Hugging Face / Render Secrets)
+gcp_creds_json = os.environ.get("GCP_SERVICE_ACCOUNT_JSON")
+if gcp_creds_json:
+    BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    key_path = os.path.join(BACKEND_DIR, "data", "gcp-key.json")
+    try:
+        os.makedirs(os.path.dirname(key_path), exist_ok=True)
+        with open(key_path, "w", encoding="utf-8") as f:
+            f.write(gcp_creds_json)
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = key_path
+        print(f"Loaded credentials from GCP_SERVICE_ACCOUNT_JSON to {key_path}")
+    except Exception as e:
+        print(f"Error saving service account credentials: {e}")
+
 # Project Configuration
 PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT", "your-gcp-project-id")
 LOCATION = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
