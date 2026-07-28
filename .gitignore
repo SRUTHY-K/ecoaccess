@@ -29,8 +29,7 @@ backend/data/credentials_config.json
 backend/data/gcp-key.json
 *key*.json
 credentials*.json
-docs/SPEAKER_NOTES.*
-docs/speaker_notes.*
+
 
 # Python caches & virtualenvs
 __pycache__/
